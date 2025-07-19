@@ -3,576 +3,489 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>A.I. Diviner Protocol v10.2 - Bug Fix</title>
+    <title>YIAN A.I CORE v17.0 - Multi-Core System</title>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;700&family=Share+Tech+Mono&display=swap');
+        
         :root {
-            --primary-color: #00bfff; --glow-color: rgba(0, 191, 255, 0.8);
-            --secondary-color: #ffffff; --background-color: #000000;
-            --container-bg: rgba(10, 25, 40, 0.85); --error-color: #ff1a1a;
-            --success-color: #00ff7f;
+            --primary-color: #00e5ff; 
+            --glow-color: rgba(0, 229, 255, 0.75);
+            --secondary-color: #e0e0e0; 
+            --background-color: #010409;
+            --container-bg: rgba(15, 22, 36, 0.85); 
+            --error-color: #ff3b3b;
+            --success-color: #34ffb9;
+            --warning-color: #ffd60a;
+            --info-color: #64b5f6;
+            --analysis-color: #c39eff;
         }
-        body.theme-ultron { --primary-color: #ff1a1a; --glow-color: rgba(255, 26, 26, 0.8); }
-        body.theme-vision { --primary-color: #ffd700; --glow-color: rgba(255, 215, 0, 0.8); }
-        * { box-sizing: border-box; }
-        body { background-color: var(--background-color); color: var(--secondary-color); font-family: 'Roboto', sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; overflow: hidden; transition: --primary-color 0.5s, --glow-color 0.5s; }
-        #matrix-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; }
-        .container { display: none; width: 100%; max-width: 420px; background: var(--container-bg); border: 1px solid var(--primary-color); border-radius: 15px; padding: 20px; box-shadow: 0 0 50px var(--glow-color); backdrop-filter: blur(5px); text-align: center; animation: fadeIn 1.5s ease-out; margin: 20px 0; transition: border-color 0.5s, box-shadow 0.5s; }
-        @keyframes fadeIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+        
+        body.theme-titan {
+            --primary-color: #ff6f00;
+            --glow-color: rgba(255, 111, 0, 0.75);
+            --analysis-color: #ff8a80;
+        }
+        body.theme-oracle {
+            --primary-color: #ffd600;
+            --glow-color: rgba(255, 214, 0, 0.75);
+            --analysis-color: #fff59d;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        body { 
+            background-color: var(--background-color); color: var(--secondary-color); 
+            font-family: 'Rajdhani', sans-serif; display: flex; justify-content: center; 
+            align-items: center; min-height: 100vh; overflow: hidden;
+            transition: --primary-color 0.5s, --glow-color 0.5s;
+        }
+        
+        #background-vfx, #startup-intro, .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; }
+        #startup-intro, .modal-overlay { z-index: 2000; display: flex; justify-content: center; align-items: center; }
+        #background-vfx { z-index: -1; }
+        #startup-intro { background-color: #000; }
+        .modal-overlay { background: rgba(0, 0, 0, 0.85); display: none; }
+        
+        #intro-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+        #intro-text-container { z-index: 2001; text-align: center; color: var(--secondary-color); }
+        #intro-text { font-size: 1.5em; letter-spacing: 4px; opacity: 0; animation: fadeInText 3s 1s ease-in-out forwards; }
+        @keyframes fadeInText { 0% { opacity: 0; transform: translateY(20px); } 50% { opacity: 1; transform: translateY(0); } 100% { opacity: 1; } }
+
+        .container { 
+            display: none; width: 100%; max-width: 420px; 
+            background: var(--container-bg); border: 1px solid var(--primary-color); 
+            border-radius: 15px; padding: 15px; 
+            box-shadow: 0 0 15px var(--glow-color), inset 0 0 15px rgba(0, 229, 255, 0.2);
+            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            text-align: center; animation: fadeInContainer 1.5s ease-out; margin: 20px;
+            transition: border-color 0.5s, box-shadow 0.5s;
+        }
+        @keyframes fadeInContainer { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        
         header { position: relative; }
-        header h1 { color: var(--primary-color); font-weight: 300; font-size: 1.6em; letter-spacing: 3px; margin: 0 0 15px 0; text-shadow: 0 0 10px var(--glow-color); transition: color 0.5s, text-shadow 0.5s; }
-        #camera-view { width: 100%; height: 120px; background: #000; border: 1px dashed var(--primary-color); border-radius: 5px; margin-bottom: 15px; overflow: hidden; transition: border-color 0.5s; }
+        header h1 { 
+            color: var(--primary-color); font-weight: 700; font-size: 1.8em; 
+            letter-spacing: 4px; margin-bottom: 10px;
+            text-shadow: 0 0 10px var(--glow-color); transition: color 0.5s, text-shadow 0.5s;
+        }
+        
+        /* === AI CORE SELECTOR === */
+        #core-selector { display: flex; justify-content: center; gap: 10px; margin-bottom: 10px; }
+        .core-button {
+            flex-grow: 1; padding: 6px; border: 1px solid var(--secondary-color); color: var(--secondary-color);
+            background: transparent; font-family: 'Rajdhani', sans-serif; cursor: pointer;
+            transition: all 0.3s; font-size: 0.9em; font-weight: 700; border-radius: 5px;
+        }
+        .core-button.active {
+            border-color: var(--primary-color); color: var(--primary-color);
+            box-shadow: 0 0 10px var(--glow-color); background: rgba(0, 229, 255, 0.1);
+        }
+
+        #energy-bar-container { width: 100%; margin-bottom: 10px; }
+        .energy-label { display: flex; justify-content: space-between; font-size: 0.8em; margin-bottom: 4px; padding: 0 5px; font-weight: 500; }
+        .energy-bar-outer { width: 100%; height: 10px; background: rgba(0,0,0,0.4); border: 1px solid var(--primary-color); border-radius: 5px; padding: 2px; transition: border-color 0.5s; }
+        .energy-bar-inner { width: 100%; height: 100%; background: linear-gradient(90deg, var(--success-color), var(--primary-color)); border-radius: 3px; transition: width 0.5s, background 0.5s, box-shadow 0.5s; box-shadow: 0 0 8px var(--success-color); }
+        .energy-bar-inner.low { background: linear-gradient(90deg, var(--warning-color), var(--error-color)); box-shadow: 0 0 8px var(--warning-color); }
+
+        #camera-view { position: relative; width: 100%; height: 90px; background: #000; border: 1px dashed var(--primary-color); border-radius: 5px; margin-bottom: 10px; overflow: hidden; transition: border-color 0.5s; }
         #camera-stream { width: 100%; height: 100%; object-fit: cover; }
-        #scan-area { position: relative; width: 150px; height: 150px; margin: 0 auto; }
-        #progress-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
-        #scan-button { position: relative; width: 100%; height: 100%; background: radial-gradient(circle, rgba(0,191,255,0.2) 0%, rgba(0,0,0,0) 70%); color: var(--primary-color); border: 2px solid var(--primary-color); border-radius: 50%; font-size: 1.2em; font-weight: 700; cursor: pointer; transition: all 0.3s ease; text-shadow: 0 0 10px var(--glow-color); display: flex; justify-content: center; align-items: center; animation: pulse 2s infinite; }
-        @keyframes pulse { 0% { box-shadow: 0 0 10px 0 var(--glow-color); } 50% { box-shadow: 0 0 25px 5px var(--glow-color); } 100% { box-shadow: 0 0 10px 0 var(--glow-color); } }
-        #scan-button:disabled { cursor: not-allowed; animation: none; color: #555; border-color: #555; background: none; }
-        #result-display { margin-top: 15px; min-height: 70px; }
-        #result-text { margin: 0; font-size: 2.2em; font-weight: 700; }
-        #confidence-score { margin-top: 5px; font-size: 0.9em; color: var(--primary-color); opacity: 0; transition: opacity 0.5s, color 0.5s; }
-        .ai-core-selector { display: flex; justify-content: center; gap: 10px; margin-bottom: 15px; }
-        .core-button { padding: 5px 10px; border: 1px solid var(--secondary-color); color: var(--secondary-color); background: transparent; font-family: 'Roboto', sans-serif; cursor: pointer; transition: all 0.3s; }
-        .core-button.active { border-color: var(--primary-color); color: var(--primary-color); box-shadow: 0 0 10px var(--glow-color); }
-        .roadmap-box { margin-top: 15px; background: rgba(0,0,0,0.3); border: 1px solid var(--primary-color); border-radius: 5px; padding: 8px; transition: border-color 0.5s; }
-        .roadmap-box h3 { margin: 0 0 8px 0; color: var(--primary-color); font-size: 1em; text-align: center; padding-bottom: 5px; border-bottom: 1px solid var(--primary-color); transition: color 0.5s, border-color 0.5s; }
-        #roadmap-canvas { display: block; margin: 0 auto; }
+        #scan-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: none; justify-content: center; align-items: center; flex-direction: column; background: rgba(52, 255, 185, 0.1); }
+        .scan-box { width: 50%; height: 60%; border: 1px solid var(--success-color); animation: scan-pulse 1s infinite; }
+        .scan-text { color: var(--success-color); margin-top: 4px; font-size: 0.8em; font-weight: bold; text-shadow: 0 0 5px var(--success-color); }
+        @keyframes scan-pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
 
-        /* --- DANGEROUS/FLASHING STYLES --- */
-        @keyframes ultron-warning-flash { 0%, 100% { box-shadow: 0 0 20px var(--error-color), inset 0 0 10px rgba(255, 26, 26, 0.5); border-color: var(--error-color); } 50% { box-shadow: 0 0 70px rgba(255, 26, 26, 1), inset 0 0 30px rgba(255, 26, 26, 1); border-color: #ffffff; } }
-        @keyframes dangerous-pulse { 0%, 100% { box-shadow: 0 0 30px var(--glow-color); } 50% { box-shadow: 0 0 60px var(--glow-color); } }
+        #holo-container { width: 100%; height: 120px; margin: 5px auto; cursor: grab; }
+        
+        #scan-button { 
+            width: 90%; padding: 12px; background: var(--primary-color); color: #000; 
+            border: none; border-radius: 8px; font-size: 1.4em; font-weight: 700; 
+            cursor: pointer; transition: all 0.3s; text-shadow: 0 0 15px rgba(0,0,0,0.5); 
+            letter-spacing: 2px; margin-top: 5px;
+        }
+        #scan-button:hover:not(:disabled) { box-shadow: 0 0 30px var(--glow-color); transform: translateY(-2px); }
+        #scan-button:disabled { cursor: not-allowed; background: #555; color: #999; }
 
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.9); z-index: 1000; display: flex; justify-content: center; align-items: center; backdrop-filter: blur(8px); }
-        .modal-box { background: var(--container-bg); border: 1px solid var(--primary-color); border-radius: 15px; padding: 25px 30px; box-shadow: 0 0 60px var(--glow-color); text-align: center; max-width: 400px; }
-        .modal-box h2 { color: var(--primary-color); margin-top: 0; font-weight: 400; letter-spacing: 2px; }
+        #result-display { margin-top: 10px; min-height: 50px; }
+        #result-text { margin: 0; font-size: 2em; font-weight: 700; letter-spacing: 1px; }
+        #confidence-score { margin-top: 2px; font-size: 0.9em; color: var(--primary-color); opacity: 0; transition: opacity 0.5s, color 0.5s; font-weight: 500; }
+
+        #probability-panel { display: none; margin-top: 10px; padding: 8px; background: rgba(0,0,0,0.2); border: 1px solid rgba(0, 229, 255, 0.2); border-radius: 5px; animation: fadeInPanel 0.5s ease-out; }
+        @keyframes fadeInPanel { from { opacity: 0; } to { opacity: 1; } }
+        .prob-item { display: flex; justify-content: space-between; align-items: center; font-size: 0.9em; margin-bottom: 4px; font-family: 'Share Tech Mono', monospace; }
+        .prob-label { text-align: left; }
+        .prob-value { font-weight: 700; color: var(--primary-color); transition: color 0.5s; }
+        .prob-bar-outer { flex-grow: 1; height: 8px; background: rgba(0,0,0,0.4); margin: 0 10px; border-radius: 4px; }
+        .prob-bar-inner { height: 100%; background: var(--primary-color); border-radius: 4px; transition: width 0.5s, background-color 0.5s; }
+
+        #analysis-terminal { margin-top: 15px; background: rgba(0,0,0,0.3); border: 1px solid rgba(0, 229, 255, 0.3); border-radius: 5px; padding: 8px; }
+        #system-log { height: 45px; background: rgba(0,0,0,0.5); border-radius: 3px; padding: 5px; font-family: 'Share Tech Mono', monospace; font-size: 0.75em; overflow-y: scroll; color: var(--secondary-color); margin-bottom: 8px; }
+        #system-log::-webkit-scrollbar { width: 4px; }
+        #system-log::-webkit-scrollbar-thumb { background: var(--primary-color); }
+        .log-line { white-space: nowrap; }
+        .log-line.info { color: var(--info-color); } .log-line.warn { color: var(--warning-color); } .log-line.error { color: var(--error-color); } .log-line.success { color: var(--success-color); } .log-line.analysis { color: var(--analysis-color); transition: color 0.5s; }
+
+        #roadmap-container { margin-top: 8px; }
+        #roadmap-canvas { width: 100%; height: 72px; background: rgba(0,0,0,0.5); border-radius: 3px; }
+
+        .modal-box { background: var(--container-bg); backdrop-filter: blur(10px); border: 1px solid var(--primary-color); border-radius: 15px; padding: 30px; box-shadow: 0 0 60px var(--glow-color); text-align: center; max-width: 400px; animation: fadeInContainer 0.5s; }
+        .modal-box h2 { color: var(--primary-color); margin-top: 0; font-weight: 700; letter-spacing: 2px; font-size: 1.5em; }
         .modal-box p { margin: 15px 0; line-height: 1.6; font-size: 1.1em; }
-        .modal-input { width: 100%; background: #000; border: 1px solid var(--primary-color); color: var(--primary-color); padding: 12px; margin-bottom: 15px; border-radius: 5px; font-size: 1.2em; text-align: center; letter-spacing: 3px; }
-        .modal-button { width: 100%; padding: 12px; background: var(--primary-color); color: #000; border: none; border-radius: 5px; font-size: 1.2em; font-weight: 700; cursor: pointer; transition: all 0.3s; }
-        .modal-button:hover { box-shadow: 0 0 20px var(--glow-color); }
+        .modal-input { width: 100%; background: #000; border: 1px solid var(--primary-color); color: var(--primary-color); padding: 12px; margin-bottom: 15px; border-radius: 5px; font-size: 1.4em; text-align: center; letter-spacing: 5px; font-family: 'Rajdhani', sans-serif; }
+        .modal-button { width: 100%; padding: 12px; background: var(--primary-color); color: #000; border: none; border-radius: 5px; font-size: 1.2em; font-weight: 700; cursor: pointer; transition: all 0.3s; letter-spacing: 1px; }
+        #login-error { color: var(--error-color); min-height: 20px; font-weight: 700; }
+        #low-energy-warning-modal .modal-box, #titan-confirm-modal .modal-box { --primary-color: var(--warning-color); --glow-color: rgba(255, 214, 10, 0.7); }
+        #low-energy-warning-modal .modal-box h2, #titan-confirm-modal .modal-box h2 { color: var(--warning-color); }
         .modal-button-group { display: flex; gap: 15px; margin-top: 20px; }
         .modal-button.secondary { background: transparent; border: 1px solid var(--secondary-color); color: var(--secondary-color); }
-        #login-error { color: var(--error-color); min-height: 20px; font-weight: 700; }
-        
-        #login-overlay .modal-box { --primary-color: #ff1a1a; --glow-color: rgba(255, 26, 26, 0.7); animation: fadeIn 0.5s, dangerous-pulse 3s infinite; }
-        #ultron-warning-modal .modal-box { --error-color: #ff1a1a; animation: fadeIn 0.3s, ultron-warning-flash 1s infinite; }
-        #ultron-warning-modal h2 { color: var(--error-color); }
-        #ultron-warning-modal .modal-button { background: var(--error-color); }
 
-        /* --- UPGRADED COIN DISPLAY --- */
-        @keyframes coin-update-flash { 0% { background-color: rgba(255, 215, 0, 0); } 50% { background-color: rgba(255, 215, 0, 0.7); } 100% { background-color: rgba(255, 215, 0, 0); } }
-        #coin-display { position: absolute; top: -1px; right: -1px; background: rgba(0,0,0,0.7); padding: 8px 20px 8px 15px; font-size: 1.1em; font-weight: 700; color: var(--primary-color); transition: all 0.5s; border-radius: 0; border: none; clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 15% 100%, 0 60%); display: flex; align-items: center; gap: 8px; }
-        #coin-display.updated { animation: coin-update-flash 0.6s ease-out; }
-        #coin-display svg text { fill: var(--primary-color); transition: all 0.5s; }
-
-        /* --- CONTROL CENTER --- */
-        #control-center-btn { position: absolute; top: 10px; left: 10px; background: none; border: none; cursor: pointer; z-index: 10; }
-        #control-center-btn svg { width: 32px; height: 32px; color: var(--primary-color); transition: transform 0.3s; }
-        #control-center-btn:hover svg { transform: rotate(90deg); }
-
-        #control-center-modal .modal-box { width: 95%; max-width: 450px; }
-        .control-center-tabs { display: flex; border-bottom: 1px solid var(--primary-color); margin-bottom: 15px; }
-        .tab-btn { flex: 1; padding: 10px; background: none; border: none; color: var(--secondary-color); font-size: 1em; cursor: pointer; transition: all 0.3s; border-bottom: 3px solid transparent; }
-        .tab-btn.active { color: var(--primary-color); border-bottom-color: var(--primary-color); }
-        .tab-content { display: none; }
-        .tab-content.active { display: block; text-align: left; }
-        .stat-item, .mission-item, .store-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); }
-        .stat-item span:last-child, .mission-item span:last-child { font-weight: bold; color: var(--primary-color); }
-        .progress-bar { width: 100px; height: 15px; background-color: #333; border-radius: 5px; overflow: hidden; }
-        .progress-bar-inner { height: 100%; background-color: var(--success-color); width: 0%; transition: width 0.5s; }
-        .claim-btn { padding: 5px 15px; background: var(--success-color); color: #000; border: none; border-radius: 5px; cursor: pointer; }
-        .claim-btn:disabled { background: #555; cursor: not-allowed; }
-        .store-item button { background-color: var(--primary-color); }
-        .store-item button:disabled { background-color: #555; }
-        .item-info { flex-grow: 1; margin-right: 10px; }
-        .item-info p { margin: 0; font-size: 0.9em; opacity: 0.8; }
+        #data-center-btn { position: absolute; top: 10px; left: 10px; background: none; border: none; cursor: pointer; z-index: 10; }
+        #data-center-btn svg { width: 28px; height: 28px; color: var(--primary-color); transition: all 0.3s; }
+        #data-center-btn:hover svg { transform: rotate(90deg) scale(1.1); }
+        #data-center-modal .modal-box { width: 95%; max-width: 450px; text-align: left; }
+        #data-center-modal .stat-item { display: flex; justify-content: space-between; padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.1); font-size: 1.1em; }
+        #data-center-modal .stat-item span:last-child { font-weight: bold; color: var(--primary-color); }
+        #winRateChart { max-height: 200px; margin: 15px 0; }
     </style>
 </head>
-<body class="theme-jarvis">
-    <canvas id="matrix-canvas"></canvas>
+<body>
+    <canvas id="background-vfx"></canvas>
+    <div id="startup-intro"> <canvas id="intro-canvas"></canvas> <div id="intro-text-container"> <p id="intro-text">INITIATING YIAN A.I CORE...</p> </div> </div>
+    <div id="low-energy-warning-modal" class="modal-overlay"> <div class="modal-box"> <h2>CẢNH BÁO</h2> <p>NĂNG LƯỢNG ĐANG CẠN! ẢNH HƯỞNG ĐẾN KẾT QUẢ! <br> HÃY RÚT RA NẠP LẠI HOẶC LIÊN HỆ @LONGBAOF168!</p> <button class="modal-button modal-close-btn">Đã hiểu</button> </div> </div>
+    <div id="titan-confirm-modal" class="modal-overlay"> <div class="modal-box"> <h2>KÍCH HOẠT LÕI TITAN</h2> <p>KHI KÍCH HOẠT SẼ CHO RA 1 KẾT QUẢ ĐÁNH TẤT TAY! TỈ LỆ 99%.<br>TIÊU TỐN 50 NĂNG LƯỢNG 1 LẦN.</p> <div class="modal-button-group"> <button id="titan-cancel-btn" class="modal-button secondary">HỦY BỎ</button> <button id="titan-confirm-btn" class="modal-button">XÁC NHẬN</button> </div> </div> </div>
+    <div id="login-overlay" class="modal-overlay"> <div class="modal-box"> <h2>YÊU CẦU XÁC THỰC</h2> <p id="login-error"></p> <input type="text" id="access-code-input" class="modal-input" placeholder="NHẬP MÃ"> <button id="login-button" class="modal-button">TRUY CẬP</button> </div> </div>
+    <div id="data-center-modal" class="modal-overlay"> <div class="modal-box"> <h2>TRUNG TÂM DỮ LIỆU</h2> <canvas id="winRateChart"></canvas> <div class="stat-item"><span>Tổng số lần quét:</span><span id="stats-total-scans">0</span></div> <div class="stat-item"><span>Tỷ lệ Thắng (Cái/Con/Hòa):</span><span id="stats-win-rate">--/--/--</span></div> <div class="stat-item"><span>Số lần Con Đôi:</span><span id="stats-player-pair">0</span></div> <div class="stat-item"><span>Số lần Cái Đôi:</span><span id="stats-banker-pair">0</span></div> <button class="modal-button modal-close-btn" style="margin-top: 20px;">ĐÓNG</button> </div> </div>
 
-    <div id="login-overlay" class="modal-overlay">
-        <div class="modal-box">
-            <h2>YÊU CẦU MÃ TRUY CẬP CẤP CAO</h2>
-            <p id="login-error"></p>
-            <input type="text" id="access-code-input" class="modal-input" placeholder="NHẬP MÃ...">
-            <button id="login-button" class="modal-button">XÁC THỰC</button>
-        </div>
-    </div>
-
-    <div id="ultron-warning-modal" class="modal-overlay" style="display: none;">
-        <div class="modal-box">
-            <h2>CẢNH BÁO CHẾ ĐỘ ULTRON</h2>
-            <p>ĐÂY LÀ CHẾ ĐỘ ĐẶC BIỆT TỐN 50 XU 1 LẦN, TỈ LỆ CHÍNH XÁC 99%, YÊU CẦU ĐÁNH TẤT TAY !!!</p>
-            <div class="modal-button-group">
-                <button id="ultron-cancel-btn" class="modal-button secondary">HỦY BỎ</button>
-                <button id="ultron-confirm-btn" class="modal-button">KÍCH HOẠT</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="control-center-modal" class="modal-overlay" style="display: none;">
-        <div class="modal-box">
-            <div class="control-center-tabs">
-                <button class="tab-btn active" data-tab="stats">THỐNG KÊ</button>
-                <button class="tab-btn" data-tab="missions">NHIỆM VỤ</button>
-                <button class="tab-btn" data-tab="store">CỬA HÀNG</button>
-            </div>
-            <div id="stats-tab" class="tab-content active">
-                <div class="stat-item"><span>Tổng số lần quét:</span><span id="stats-total-scans">0</span></div>
-                <div class="stat-item"><span>Tỷ lệ thắng Nhà Cái:</span><span id="stats-banker-rate">0%</span></div>
-                <div class="stat-item"><span>Tỷ lệ thắng Tay Con:</span><span id="stats-player-rate">0%</span></div>
-                <div class="stat-item"><span>Tỷ lệ Hoà:</span><span id="stats-tie-rate">0%</span></div>
-                <div class="stat-item"><span>Số lần Con Đôi:</span><span id="stats-player-pair">0</span></div>
-                <div class="stat-item"><span>Số lần Cái Đôi:</span><span id="stats-banker-pair">0</span></div>
-            </div>
-            <div id="missions-tab" class="tab-content">
-                <div class="mission-item">
-                    <span>Nhiệm vụ: Quét 5 lần</span>
-                    <div class="progress-bar"><div id="mission-progress" class="progress-bar-inner"></div></div>
-                    <button id="claim-mission-btn" class="claim-btn" disabled>Nhận 30 Xu</button>
-                </div>
-            </div>
-            <div id="store-tab" class="tab-content">
-                 <div class="store-item">
-                    <div class="item-info">
-                        <strong>Tăng Cường Tín Hiệu</strong>
-                        <p>Giảm 50% chi phí quét cho 3 lần kế tiếp.</p>
-                    </div>
-                    <button id="buy-boost-btn" class="modal-button">Mua (40 Xu)</button>
-                </div>
-            </div>
-            <button id="close-control-center-btn" class="modal-button secondary" style="margin-top: 20px;">Đóng</button>
-        </div>
-    </div>
-    
     <div class="container">
         <header>
-            <button id="control-center-btn">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16">
-                    <path d="M9.405 1.05c-.413-1.4-2.397-1.4-2.81 0l-.1.34a1.464 1.464 0 0 1-2.105.872l-.31-.17c-1.283-.698-2.686.705-1.987 1.987l.169.311a1.464 1.464 0 0 1-.872 2.105l-.34.1c-1.4.413-1.4 2.397 0 2.81l.34.1a1.464 1.464 0 0 1 .872 2.105l-.17.31c-.698 1.283.705 2.686 1.987 1.987l.311-.169a1.464 1.464 0 0 1 2.105.872l.1.34c.413 1.4 2.397 1.4 2.81 0l.1-.34a1.464 1.464 0 0 1 2.105-.872l.31.17c1.283.698 2.686-.705 1.987-1.987l-.169-.311a1.464 1.464 0 0 1 .872-2.105l.34-.1c1.4-.413-1.4-2.397 0-2.81l.34-.1a1.464 1.464 0 0 1 .872-2.105l.17-.31c.698-1.283-.705-2.686-1.987-1.987l-.311.169a1.464 1.464 0 0 1-2.105-.872l-.1-.34zM8 10.93a2.929 2.929 0 1 1 0-5.858 2.929 2.929 0 0 1 0 5.858z"/>
-                </svg>
+            <button id="data-center-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"> <path d="M11 2a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v12h.5a.5.5 0 0 1 0 1H.5a.5.5 0 0 1 0-1H1v-3a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v3h1V7a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v7h1V2zm1 12h-2V2h2v12zm-3 0V7H7v7h2zm-4 0v-3H2v3h2z"/> </svg>
             </button>
-            <h1>A.I. DIVINER PROTOCOL</h1>
-            <div id="coin-display">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" width="20" height="20">
-                    <path d="M20,2 L37.32,11 L37.32,29 L20,38 L2.68,29 L2.68,11 Z" fill="none" stroke="currentColor" stroke-width="3"></path>
-                    <text x="50%" y="54%" text-anchor="middle" dominant-baseline="middle" font-size="16" fill="currentColor" font-weight="bold">XU</text>
-                </svg>
-                <span id="coin-count">--</span>
-            </div>
+            <h1>YIAN A.I CORE</h1>
         </header>
         <main>
-            <div class="ai-core-selector">
-                <button class="core-button active" data-model="jarvis">J.A.R.V.I.S.</button>
-                <button class="core-button" data-model="ultron">ULTRON</button>
-                <button class="core-button" data-model="vision">VISION</button>
+            <div id="core-selector">
+                <button class="core-button" data-core="yian">YIAN</button>
+                <button class="core-button" data-core="titan">TITAN</button>
+                <button class="core-button" data-core="oracle">ORACLE</button>
             </div>
-            <div id="camera-view"><video id="camera-stream" autoplay playsinline muted></video></div>
-            <div id="scan-area">
-                <canvas id="progress-canvas"></canvas>
-                <button id="scan-button"><span id="scan-button-text">SCAN</span></button>
+            <div id="energy-bar-container">
+                <div class="energy-label">
+                    <span>NĂNG LƯỢNG</span>
+                    <span id="energy-percent-text">100%</span>
+                </div>
+                <div class="energy-bar-outer">
+                    <div id="energy-bar-inner" class="energy-bar-inner"></div>
+                </div>
             </div>
+            <div id="camera-view">
+                <video id="camera-stream" autoplay playsinline muted></video>
+                <div id="scan-overlay">
+                    <div class="scan-box"></div>
+                    <p class="scan-text">ANALYZING ENVIRONMENT...</p>
+                </div>
+            </div>
+            <div id="holo-container"></div>
+            <button id="scan-button">KHỞI TẠO QUÉT</button>
             <div id="result-display">
-                <h2 id="result-text">-- STANDBY --</h2>
+                <h2 id="result-text">-- CHỜ LỆNH --</h2>
                 <div id="confidence-score"></div>
+                <div id="probability-panel">
+                    <div class="prob-item"> <span class="prob-label">NHÀ CÁI</span> <div class="prob-bar-outer"><div id="prob-bar-banker" class="prob-bar-inner"></div></div> <span id="prob-value-banker" class="prob-value">--.--%</span> </div>
+                    <div class="prob-item"> <span class="prob-label">TAY CON</span> <div class="prob-bar-outer"><div id="prob-bar-player" class="prob-bar-inner"></div></div> <span id="prob-value-player" class="prob-value">--.--%</span> </div>
+                    <div class="prob-item"> <span class="prob-label">HOÀ</span> <div class="prob-bar-outer"><div id="prob-bar-tie" class="prob-bar-inner"></div></div> <span id="prob-value-tie" class="prob-value">--.--%</span> </div>
+                </div>
             </div>
-            <div class="roadmap-box">
-                <h3>BACCARAT ROADMAP</h3>
-                <canvas id="roadmap-canvas" width="370" height="96"></canvas>
+            <div id="analysis-terminal">
+                <div id="system-log"></div>
+                <div id="roadmap-container">
+                    <canvas id="roadmap-canvas"></canvas>
+                </div>
             </div>
         </main>
     </div>
     
     <script>
         // --- PART 0: CONFIG & STATE ---
-        const ACCESS_CODES = {
-            'ALPHA01': 100, 'BRAVO07': 100, 'CHARLIE42': 100, 'DELTA99': 100, 'ECHO21': 100,
-            'FOXTROT77': 100, 'GOLF18': 100, 'HOTEL05': 100, 'INDIA33': 100, 'JULIET88': 100,
-            'KILO10': 100, 'LIMA64': 100, 'MIKE23': 100, 'NOVEMBER50': 100, 'OSCAR11': 100,
-            'PAPA02': 100, 'QUEBEC30': 100, 'ROMEO91': 100, 'SIERRA75': 100, 'TANGO44': 100
-        };
+        const ACCESS_CODES = { 'ALPHA23': 100, 'BRAVO77': 100, 'CHARLIE19': 100, 'DELTA05': 100, 'ECHO99': 100, 'FOXTROT42': 100, 'GOLF81': 100, 'HOTEL11': 100, 'INDIA64': 100, 'JULIETT38': 100, 'KILO02': 100, 'LIMA55': 100, 'MIKE88': 100, 'NOVEMBER29': 100, 'OSCAR76': 100, 'PAPA10': 100, 'QUEBEC47': 100, 'ROMEO91': 100, 'SIERRA33': 100, 'TANGO68': 100 };
         const AI_CORES = {
-            jarvis: { name: "J.A.R.V.I.S.", preScanPhrases: ["Scanning environment...", "Analyzing probabilities, sir.", "Let's see what we have here."], cost: 5 },
-            ultron: { name: "ULTRON", preScanPhrases: ["Show me your pathetic luck.", "There are no strings on me.", "The only path to peace is your extinction... and this bet."], cost: 50 },
-            vision: { name: "VISION", preScanPhrases: ["A thing isn't beautiful because it lasts.", "What is this wager, if not probability persevering?", "I am... analyzing."], cost: 5 }
+            yian: { name: 'YIAN', cost: 5, color: '#00e5ff' },
+            titan: { name: 'TITAN', cost: 50, color: '#ff6f00' },
+            oracle: { name: 'ORACLE', cost: 3, color: '#ffd600' }
         };
-        const userPreScanPhrases = ["tất tay đi, tay này đẹp", "vốn vậy sao đánh", "nhớ là quét sảnh S.E thôi nha", "Năng lượng đang cạn", "Hôm nay là ngày đẹp để thắng", "Bạn ăn cơm chưa", "Tao mắc tè rồi"];
-        
-        // App State
-        let currentUser = null;
-        let userCoins = 0;
-        let historyArray = [];
-        let resultCyclingInterval;
-        let currentModel = 'jarvis';
-        let userData = {};
+        let activeCore = 'yian';
+        let currentUser = null, userEnergy = 100, lowEnergyWarningShown = false;
+        let resultCyclingInterval, isScanning = false;
+        let logInterval, waveformAnimationId;
+        let history = [];
+        let winRateChart = null;
 
         // --- DOM ELEMENTS ---
+        const allModals = document.querySelectorAll('.modal-overlay');
         const loginOverlay = document.getElementById('login-overlay');
         const mainContainer = document.querySelector('.container');
-        const accessCodeInput = document.getElementById('access-code-input');
-        const loginButton = document.getElementById('login-button');
-        const loginError = document.getElementById('login-error');
-        const ultronWarningModal = document.getElementById('ultron-warning-modal');
-        const controlCenterModal = document.getElementById('control-center-modal');
-        const scanButton = document.getElementById('scan-button');
-        const videoElement = document.getElementById('camera-stream');
-        const matrixCanvas = document.getElementById('matrix-canvas');
+        const titanConfirmModal = document.getElementById('titan-confirm-modal');
+        const dataCenterModal = document.getElementById('data-center-modal');
 
-        // --- USER & DATA MANAGEMENT ---
-        function loadUserData() {
-            const savedData = localStorage.getItem(`user_${currentUser}`);
-            const today = new Date().toISOString().slice(0, 10);
-            
-            if (savedData) {
-                userData = JSON.parse(savedData);
-                userCoins = userData.coins;
-                historyArray = userData.history || [];
-            } else {
-                userData = {
-                    coins: ACCESS_CODES[currentUser],
-                    history: [],
-                    lastLogin: null,
-                    missions: { scansToday: 0, claimedScanReward: false },
-                    store: { boost: 0 }
-                };
-                // *** BUG FIX IS HERE ***
-                // This line ensures the starting coins are correctly assigned to the main variable.
-                userCoins = userData.coins;
-            }
-
-            // Daily Login Reward
-            if (userData.lastLogin !== today) {
-                userCoins += 20;
-                userData.lastLogin = today;
-                userData.missions = { scansToday: 0, claimedScanReward: false }; // Reset missions daily
-                speak("Chào mừng trở lại. 20 xu thưởng đăng nhập đã được thêm vào tài khoản.");
-            }
-            
-            saveUserData();
-            updateCoinDisplay();
-            drawRoadmap();
-        }
-
-        function saveUserData() {
-            if (currentUser) {
-                userData.coins = userCoins;
-                userData.history = historyArray;
-                localStorage.setItem(`user_${currentUser}`, JSON.stringify(userData));
-            }
-        }
-
+        // --- AUTH & DATA ---
         function authenticate(code) {
             const upperCaseCode = code.toUpperCase();
             if (ACCESS_CODES.hasOwnProperty(upperCaseCode)) {
-                currentUser = upperCaseCode;
-                loadUserData();
-                loginOverlay.style.display = 'none';
-                mainContainer.style.display = 'block';
-                localStorage.setItem('diviner_session_user', currentUser);
-                setupCamera();
-                loadData();
+                currentUser = upperCaseCode; userEnergy = 100; lowEnergyWarningShown = false; history = [];
+                updateEnergyBar();
+                loginOverlay.style.display = 'none'; mainContainer.style.display = 'block';
+                setupCamera(); initHolographicScanner(); initAnalysisTerminal(); setActiveCore('yian');
             } else {
-                loginError.textContent = "MÃ TRUY CẬP KHÔNG HỢP LỆ.";
-                accessCodeInput.value = "";
+                const errorEl = document.getElementById('login-error');
+                errorEl.textContent = "MÃ TRUY CẬP KHÔNG HỢP LỆ";
+                setTimeout(() => errorEl.textContent = "", 2000);
             }
-        }
-
-        function checkSession() {
-            const sessionUser = localStorage.getItem('diviner_session_user');
-            if(sessionUser && ACCESS_CODES.hasOwnProperty(sessionUser)) {
-                authenticate(sessionUser);
-            }
-        }
-
-        // --- UI & DISPLAY FUNCTIONS ---
-        function updateCoinDisplay() {
-            const coinCountElement = document.getElementById('coin-count');
-            const coinDisplayElement = document.getElementById('coin-display');
-            if (!coinCountElement || !coinDisplayElement) return;
-            coinCountElement.textContent = userCoins;
-            coinDisplayElement.classList.add('updated');
-            setTimeout(() => coinDisplayElement.classList.remove('updated'), 600);
-        }
-
-        function speak(text) {
-            if ('speechSynthesis' in window) {
-                const utterance = new SpeechSynthesisUtterance(text);
-                utterance.lang = 'vi-VN';
-                window.speechSynthesis.speak(utterance);
-            }
-        }
-
-        function drawMatrix() {
-            const matrixCtx = matrixCanvas.getContext('2d');
-            matrixCanvas.width = window.innerWidth;
-            matrixCanvas.height = window.innerHeight;
-            const alphabet = 'アァカサタナハマヤャラワガザダバパイキシチニヒミリヰギジヂビピウゥクスツヌフムユュルグズブプエェケセテネヘメレヱゲゼデベペオォコソトノホモヨョロヲゴゾドボポヴッン0123456789';
-            const fontSize = 16;
-            const columns = matrixCanvas.width / fontSize;
-            const rainDrops = Array.from({ length: columns }).fill(1);
-            
-            function draw() {
-                matrixCtx.fillStyle = 'rgba(0, 0, 0, 0.05)';
-                matrixCtx.fillRect(0, 0, matrixCanvas.width, matrixCanvas.height);
-                matrixCtx.fillStyle = '#0F0';
-                matrixCtx.font = fontSize + 'px monospace';
-                for (let i = 0; i < rainDrops.length; i++) {
-                    const text = alphabet.charAt(Math.floor(Math.random() * alphabet.length));
-                    matrixCtx.fillText(text, i * fontSize, rainDrops[i] * fontSize);
-                    if (rainDrops[i] * fontSize > matrixCanvas.height && Math.random() > 0.975) rainDrops[i] = 0;
-                    rainDrops[i]++;
-                }
-            }
-            setInterval(draw, 33);
-        }
-
-        // --- CORE APP LOGIC ---
-        async function setupCamera() {
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
-                videoElement.srcObject = stream;
-            } catch (err) { console.error("Camera access denied:", err); }
-        }
-
-        function startScanProcess() {
-            let cost = AI_CORES[currentModel].cost;
-            // Check for store boost
-            if (userData.store?.boost > 0) {
-                cost = Math.ceil(cost / 2);
-                userData.store.boost--;
-                speak(`Vật phẩm kích hoạt. Chi phí giảm còn ${cost} xu.`);
-            }
-
-            if (userCoins < cost) {
-                speak(`Không đủ xu để thực hiện. Cần ${cost} xu.`);
-                document.getElementById('result-text').textContent = `CẦN ${cost} XU`;
-                return;
-            }
-            userCoins -= cost;
-            updateCoinDisplay();
-            
-            // Update mission progress
-            userData.missions.scansToday++;
-            
-            vibrate(50);
-            const allPhrases = [...AI_CORES[currentModel].preScanPhrases, ...userPreScanPhrases];
-            const randomPhrase = allPhrases[Math.floor(Math.random() * allPhrases.length)];
-            speak(randomPhrase);
-
-            scanButton.disabled = true;
-            document.getElementById('confidence-score').style.opacity = 0;
-            
-            let progress = 0;
-            const progressCanvas = document.getElementById('progress-canvas');
-            const progressCtx = progressCanvas.getContext('2d');
-            const progressInterval = setInterval(() => {
-                progress++;
-                drawProgress(progressCtx, progress);
-                document.getElementById('scan-button-text').textContent = `${progress}%`;
-                if (progress >= 100) clearInterval(progressInterval);
-            }, 4000 / 100);
-
-            setTimeout(() => {
-                resultCyclingInterval = setInterval(() => {
-                    document.getElementById('result-text').textContent = ["TAY CON", "NHÀ CÁI", "HOÀ"][Math.floor(Math.random() * 3)];
-                }, 100);
-            }, 2500);
-
-            setTimeout(() => {
-                clearInterval(resultCyclingInterval);
-                vibrate([100, 30, 100]);
-                
-                let finalResult = generateRandomResult();
-                updateHistory(finalResult);
-                displayResult(finalResult);
-                
-                scanButton.disabled = false;
-                document.getElementById('scan-button-text').textContent = "SCAN";
-                progressCtx.clearRect(0, 0, 150, 150);
-                saveUserData();
-            }, 4000);
         }
         
-        function generateRandomResult() {
-            const mainResult = ["Tay con", "Nhà cái", "Hoà"][Math.floor(Math.random() * 3)];
-            if (mainResult === "Hoà") return { winner: "Hoà", pairs: [] };
-            let pairs = [];
-            if (Math.random() < 0.075) pairs.push("Con đôi");
-            if (Math.random() < 0.075) pairs.push("Cái đôi");
-            return { winner: mainResult, pairs: pairs };
+        // --- UI & DISPLAY FUNCTIONS ---
+        function updateEnergyBar() {
+            const energyBarInner = document.getElementById('energy-bar-inner'), energyPercentText = document.getElementById('energy-percent-text');
+            userEnergy = Math.max(0, userEnergy);
+            energyBarInner.style.width = `${userEnergy}%`; energyPercentText.textContent = `${Math.round(userEnergy)}%`;
+            energyBarInner.classList.toggle('low', userEnergy <= 50);
         }
 
-        function displayResult(result) {
-            const resultString = [result.winner, ...result.pairs].join(" - ").toUpperCase();
-            document.getElementById('result-text').textContent = resultString;
-            
-            let minConfidence = currentModel === 'ultron' ? 99.0 : 92.5;
-            let maxConfidence = currentModel === 'ultron' ? 99.8 : 98.5;
-            const randomConfidence = (Math.random() * (maxConfidence - minConfidence) + minConfidence).toFixed(1);
-            document.getElementById('confidence-score').textContent = `CONFIDENCE: ${randomConfidence}%`;
-            document.getElementById('confidence-score').style.opacity = 1;
-            speak(`Kết quả: ${result.winner}. Độ tự tin: ${randomConfidence} phần trăm.`);
+        function addLogMessage(msg, type) {
+            const systemLog = document.getElementById('system-log');
+            const line = document.createElement('div');
+            line.className = `log-line ${type || 'info'}`;
+            line.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+            systemLog.appendChild(line);
+            systemLog.scrollTop = systemLog.scrollHeight;
+        }
+
+        function setActiveCore(coreName) {
+            activeCore = coreName;
+            document.body.className = `theme-${coreName}`;
+            document.querySelectorAll('.core-button').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.core === coreName);
+            });
+            addLogMessage(`Active core switched to ${AI_CORES[coreName].name}.`, 'warn');
         }
 
         function drawRoadmap() {
-            const roadmapCanvas = document.getElementById('roadmap-canvas');
-            const roadmapCtx = roadmapCanvas.getContext('2d');
-            const roadmapCellSize = 16;
-            roadmapCtx.clearRect(0, 0, roadmapCanvas.width, roadmapCanvas.height);
-            let col = 0, row = 0;
-            if (historyArray.length === 0) return;
-            for (let i = 0; i < historyArray.length; i++) {
-                if (i > 0 && historyArray[i].winner !== historyArray[i-1].winner && historyArray[i-1].winner !== 'Hoà') { col++; row = 0; }
-                if (row >= 6) { col++; row = 0; }
-                if (col >= 23) break;
-                const x = col * roadmapCellSize + roadmapCellSize / 2;
-                const y = row * roadmapCellSize + roadmapCellSize / 2;
-                if (historyArray[i].winner === "Hoà") {
-                    if(i > 0) row--;
-                    roadmapCtx.beginPath(); roadmapCtx.moveTo(x - 5, y - 5); roadmapCtx.lineTo(x + 5, y + 5);
-                    roadmapCtx.strokeStyle = '#00ff00'; roadmapCtx.lineWidth = 2; roadmapCtx.stroke();
-                } else {
-                    roadmapCtx.beginPath(); roadmapCtx.arc(x, y, roadmapCellSize / 2 - 2, 0, 2 * Math.PI);
-                    roadmapCtx.strokeStyle = historyArray[i].winner === 'Tay con' ? '#00bfff' : '#ff1a1a';
-                    roadmapCtx.lineWidth = 2; roadmapCtx.stroke();
+            const canvas = document.getElementById('roadmap-canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = canvas.clientWidth;
+            canvas.height = canvas.clientHeight;
+            const beadSize = canvas.height / 6; // 6 rows
+            const cols = Math.floor(canvas.width / beadSize);
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            let currentX = 0, currentY = 0;
+            history.slice(-cols * 6).forEach(result => {
+                const centerX = currentX * beadSize + beadSize / 2;
+                const centerY = currentY * beadSize + beadSize / 2;
+                
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, beadSize / 2 - 2, 0, 2 * Math.PI);
+                
+                if (result.winner === 'Nhà cái') ctx.strokeStyle = '#ff3b3b';
+                else if (result.winner === 'Tay con') ctx.strokeStyle = '#00e5ff';
+                else ctx.strokeStyle = '#34ffb9';
+                
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                if (result.winner === 'Hoà') {
+                    ctx.beginPath();
+                    ctx.moveTo(centerX - beadSize/3, centerY + beadSize/3);
+                    ctx.lineTo(centerX + beadSize/3, centerY - beadSize/3);
+                    ctx.stroke();
                 }
-                row++;
-            }
-        }
 
-        function updateHistory(result) {
-            historyArray.push(result);
-            if (historyArray.length > 50) historyArray.shift();
-            drawRoadmap();
-        }
-
-        function changeModel(model) {
-            if (model === 'ultron' && currentModel !== 'ultron') {
-                if (userCoins < AI_CORES.ultron.cost) {
-                    speak(`Không đủ xu để kích hoạt ULTRON. Cần ${AI_CORES.ultron.cost} xu.`);
-                    return;
+                if (result.pairs.includes("Cái đôi")) {
+                    ctx.fillStyle = '#ff3b3b';
+                    ctx.beginPath(); ctx.arc(centerX - beadSize/3, centerY - beadSize/3, 2, 0, 2 * Math.PI); ctx.fill();
                 }
-                ultronWarningModal.style.display = 'flex';
-                return;
-            }
-            applyModelChange(model);
+                if (result.pairs.includes("Con đôi")) {
+                    ctx.fillStyle = '#00e5ff';
+                    ctx.beginPath(); ctx.arc(centerX + beadSize/3, centerY + beadSize/3, 2, 0, 2 * Math.PI); ctx.fill();
+                }
+
+                currentY++;
+                if (currentY >= 6) { currentY = 0; currentX++; }
+            });
         }
 
-        function applyModelChange(model) {
-            currentModel = model;
-            document.body.className = `theme-${model}`;
-            document.querySelectorAll('.core-button').forEach(btn => btn.classList.remove('active'));
-            document.querySelector(`.core-button[data-model="${model}"]`).classList.add('active');
-            localStorage.setItem('baccaratModel', model);
-        }
+        function updateDataCenter() {
+            const total = history.length;
+            if (total === 0) return;
 
-        function loadData() {
-            const savedModel = localStorage.getItem('baccaratModel');
-            if (savedModel) applyModelChange(savedModel);
-        }
-        
-        function vibrate(p) { if ('vibrate' in navigator) navigator.vibrate(p); }
-        function drawProgress(ctx, p) {
-            const r=75; const a=(p/100)*2*Math.PI-0.5*Math.PI;
-            ctx.clearRect(0,0,150,150); ctx.beginPath();
-            ctx.arc(r,r,r-10,-0.5*Math.PI,a,false); ctx.lineWidth=4;
-            ctx.strokeStyle='var(--primary-color)'; ctx.stroke();
-        }
+            const bankerWins = history.filter(h => h.winner === 'Nhà cái').length;
+            const playerWins = history.filter(h => h.winner === 'Tay con').length;
+            const ties = history.filter(h => h.winner === 'Hoà').length;
+            const playerPairs = history.filter(h => h.pairs.includes('Con đôi')).length;
+            const bankerPairs = history.filter(h => h.pairs.includes('Cái đôi')).length;
 
-        // --- CONTROL CENTER LOGIC ---
-        function updateStats() {
-            const total = historyArray.length;
             document.getElementById('stats-total-scans').textContent = total;
-            if (total === 0) {
-                 document.getElementById('stats-banker-rate').textContent = `0%`;
-                 document.getElementById('stats-player-rate').textContent = `0%`;
-                 document.getElementById('stats-tie-rate').textContent = `0%`;
-                 document.getElementById('stats-player-pair').textContent = 0;
-                 document.getElementById('stats-banker-pair').textContent = 0;
-                 return;
-            };
-            const bankerWins = historyArray.filter(h => h.winner === 'Nhà cái').length;
-            const playerWins = historyArray.filter(h => h.winner === 'Tay con').length;
-            const ties = historyArray.filter(h => h.winner === 'Hoà').length;
-            const playerPairs = historyArray.reduce((acc, h) => acc + (h.pairs.includes('Con đôi') ? 1 : 0), 0);
-            const bankerPairs = historyArray.reduce((acc, h) => acc + (h.pairs.includes('Cái đôi') ? 1 : 0), 0);
-            
-            document.getElementById('stats-banker-rate').textContent = `${((bankerWins / total) * 100).toFixed(1)}%`;
-            document.getElementById('stats-player-rate').textContent = `${((playerWins / total) * 100).toFixed(1)}%`;
-            document.getElementById('stats-tie-rate').textContent = `${((ties / total) * 100).toFixed(1)}%`;
+            document.getElementById('stats-win-rate').textContent = `${(bankerWins/total*100).toFixed(1)}% / ${(playerWins/total*100).toFixed(1)}% / ${(ties/total*100).toFixed(1)}%`;
             document.getElementById('stats-player-pair').textContent = playerPairs;
             document.getElementById('stats-banker-pair').textContent = bankerPairs;
+
+            const ctx = document.getElementById('winRateChart').getContext('2d');
+            if (winRateChart) winRateChart.destroy();
+            winRateChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Nhà Cái', 'Tay Con', 'Hoà'],
+                    datasets: [{
+                        data: [bankerWins, playerWins, ties],
+                        backgroundColor: ['rgba(255, 59, 59, 0.7)', 'rgba(0, 229, 255, 0.7)', 'rgba(52, 255, 185, 0.7)'],
+                        borderColor: ['#ff3b3b', '#00e5ff', '#34ffb9'],
+                        borderWidth: 1
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: 'white', padding: 15 } } } }
+            });
         }
 
-        function updateMissions() {
-            if (!userData.missions) return;
-            const scans = userData.missions.scansToday;
-            const progress = Math.min((scans / 5) * 100, 100);
-            document.getElementById('mission-progress').style.width = `${progress}%`;
+        // --- CORE APP LOGIC ---
+        function startScanProcess() {
+            const currentCost = AI_CORES[activeCore].cost;
+            if (userEnergy < currentCost) { document.getElementById('result-text').textContent = "NĂNG LƯỢNG THẤP"; return; }
+            userEnergy -= currentCost; updateEnergyBar();
+            if (userEnergy <= 50 && !lowEnergyWarningShown) { document.getElementById('low-energy-warning-modal').style.display = 'flex'; lowEnergyWarningShown = true; }
             
-            const claimBtn = document.getElementById('claim-mission-btn');
-            if (scans >= 5 && !userData.missions.claimedScanReward) {
-                claimBtn.disabled = false;
-            } else {
-                claimBtn.disabled = true;
-            }
+            isScanning = true; document.getElementById('scan-button').disabled = true; document.getElementById('scan-button').textContent = 'ĐANG PHÂN TÍCH...';
+            document.getElementById('scan-overlay').style.display = 'flex'; document.getElementById('confidence-score').style.opacity = 0;
+            document.getElementById('probability-panel').style.display = 'none';
+
+            addLogMessage(`Scan initiated with ${AI_CORES[activeCore].name} core.`, 'info');
+            addLogMessage('Analyzing environmental data...', 'analysis');
+            addLogMessage('Cross-referencing 1.2M historical data points...', 'analysis');
+            
+            resultCyclingInterval = setInterval(() => {
+                document.getElementById('result-text').textContent = ["TAY CON", "NHÀ CÁI", "HOÀ"][Math.floor(Math.random() * 3)];
+            }, 100);
+
+            setTimeout(() => {
+                clearInterval(resultCyclingInterval);
+                isScanning = false; document.getElementById('scan-button').disabled = false; document.getElementById('scan-button').textContent = 'KHỞI TẠO QUÉT';
+                document.getElementById('scan-overlay').style.display = 'none';
+                let finalResult = generateRandomResult();
+                displayResult(finalResult);
+                addLogMessage(`Optimal outcome determined: ${finalResult.winner.toUpperCase()}`, 'success');
+            }, 3500);
         }
         
-        function claimMissionReward() {
-            if (userData.missions.scansToday >= 5 && !userData.missions.claimedScanReward) {
-                userCoins += 30;
-                userData.missions.claimedScanReward = true;
-                updateCoinDisplay();
-                saveUserData();
-                updateMissions();
-                speak("Đã nhận thưởng 30 xu.");
-            }
-        }
-        
-        function buyBoost() {
-            const cost = 40;
-            if (userCoins >= cost) {
-                userCoins -= cost;
-                if (!userData.store) userData.store = {};
-                userData.store.boost = (userData.store.boost || 0) + 3;
-                updateCoinDisplay();
-                saveUserData();
-                speak("Đã mua Tăng Cường Tín Hiệu.");
+        function generateRandomResult() {
+            let baseBanker = 45.85, basePlayer = 44.62, baseTie = 9.53;
+            let variation = (Math.random() - 0.5) * 2;
+            if (activeCore === 'titan') variation = (Math.random() - 0.5) * 1; // Less random
+            if (activeCore === 'oracle') variation = (Math.random() - 0.5) * 3; // More random
+
+            let probBanker = baseBanker + variation;
+            let probPlayer = basePlayer - variation;
+            let probTie = baseTie + (Math.random() - 0.5) * 0.2;
+            const total = probBanker + probPlayer + probTie;
+            probBanker = (probBanker / total) * 100;
+            probPlayer = (probPlayer / total) * 100;
+            probTie = (probTie / total) * 100;
+
+            let roll = Math.random() * 100;
+            let winner = '';
+            // TITAN core has a 99% chance to pick the highest probability
+            if (activeCore === 'titan' && Math.random() < 0.99) {
+                winner = probBanker > probPlayer ? 'Nhà cái' : 'Tay con';
             } else {
-                speak("Không đủ xu để mua vật phẩm này.");
+                if (roll < probBanker) winner = "Nhà cái";
+                else if (roll < probBanker + probPlayer) winner = "Tay con";
+                else winner = "Hoà";
             }
+            
+            let pairs = [];
+            if (Math.random() < 0.075) pairs.push("Con đôi");
+            if (Math.random() < 0.075) pairs.push("Cái đôi");
+
+            return { winner, pairs, probabilities: { banker: probBanker, player: probPlayer, tie: probTie } };
+        }
+
+        function displayResult(result) {
+            history.push(result);
+            drawRoadmap();
+
+            let resultString = result.winner;
+            if (result.pairs.length > 0) resultString += ` + ${result.pairs.join(' + ')}`;
+            document.getElementById('result-text').textContent = resultString;
+
+            const confidence = activeCore === 'titan' ? 99 : Math.floor(Math.random() * (95 - 80 + 1)) + 80;
+            const confidenceScoreEl = document.getElementById('confidence-score');
+            confidenceScoreEl.textContent = `A.I. TIN CẬY: ${confidence}%`;
+            confidenceScoreEl.style.opacity = 1;
+
+            const probs = result.probabilities;
+            document.getElementById('prob-value-banker').textContent = `${probs.banker.toFixed(2)}%`;
+            document.getElementById('prob-bar-banker').style.width = `${probs.banker}%`;
+            document.getElementById('prob-value-player').textContent = `${probs.player.toFixed(2)}%`;
+            document.getElementById('prob-bar-player').style.width = `${probs.player}%`;
+            document.getElementById('prob-value-tie').textContent = `${probs.tie.toFixed(2)}%`;
+            document.getElementById('prob-bar-tie').style.width = `${probs.tie}%`;
+            document.getElementById('probability-panel').style.display = 'block';
         }
 
         // --- EVENT LISTENERS ---
-        loginButton.addEventListener('click', () => authenticate(accessCodeInput.value));
-        accessCodeInput.addEventListener('keyup', (e) => { if(e.key === 'Enter') authenticate(accessCodeInput.value); });
-        document.querySelectorAll('.core-button').forEach(button => button.addEventListener('click', () => changeModel(button.dataset.model)));
-        document.getElementById('ultron-confirm-btn').addEventListener('click', () => { ultronWarningModal.style.display = 'none'; applyModelChange('ultron'); });
-        document.getElementById('ultron-cancel-btn').addEventListener('click', () => { ultronWarningModal.style.display = 'none'; });
-        scanButton.addEventListener('click', startScanProcess);
+        document.getElementById('login-button').addEventListener('click', () => authenticate(document.getElementById('access-code-input').value));
+        document.getElementById('access-code-input').addEventListener('keyup', (e) => { if (e.key === 'Enter') authenticate(e.target.value); });
+        document.getElementById('scan-button').addEventListener('click', startScanProcess);
         
-        // Control Center Listeners
-        document.getElementById('control-center-btn').addEventListener('click', () => {
-            updateStats();
-            updateMissions();
-            controlCenterModal.style.display = 'flex';
-        });
-        document.getElementById('close-control-center-btn').addEventListener('click', () => { controlCenterModal.style.display = 'none'; });
-        document.querySelectorAll('.tab-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                document.querySelectorAll('.tab-btn, .tab-content').forEach(el => el.classList.remove('active'));
-                btn.classList.add('active');
-                document.getElementById(`${btn.dataset.tab}-tab`).classList.add('active');
+        document.querySelectorAll('.core-button').forEach(button => {
+            button.addEventListener('click', (e) => {
+                const coreName = e.target.dataset.core;
+                if (coreName === 'titan') {
+                    titanConfirmModal.style.display = 'flex';
+                } else {
+                    setActiveCore(coreName);
+                }
             });
         });
-        document.getElementById('claim-mission-btn').addEventListener('click', claimMissionReward);
-        document.getElementById('buy-boost-btn').addEventListener('click', buyBoost);
+
+        document.getElementById('titan-confirm-btn').addEventListener('click', () => {
+            setActiveCore('titan');
+            titanConfirmModal.style.display = 'none';
+        });
+        document.getElementById('titan-cancel-btn').addEventListener('click', () => { titanConfirmModal.style.display = 'none'; });
+
+        document.getElementById('data-center-btn').addEventListener('click', () => {
+            updateDataCenter();
+            dataCenterModal.style.display = 'flex';
+        });
         
+        allModals.forEach(modal => {
+            const closeBtn = modal.querySelector('.modal-close-btn');
+            if (closeBtn) {
+                closeBtn.addEventListener('click', () => {
+                    modal.style.display = 'none';
+                });
+            }
+        });
+
         // --- INITIALIZATION ---
         window.addEventListener('load', () => {
-            checkSession();
-            drawMatrix();
+            initIntroAnimation();
+            setTimeout(() => {
+                document.getElementById('startup-intro').style.transition = 'opacity 1s';
+                document.getElementById('startup-intro').style.opacity = 0;
+                setTimeout(() => {
+                    document.getElementById('startup-intro').style.display = 'none';
+                    loginOverlay.style.display = 'flex';
+                }, 1000);
+            }, 5000);
         });
+
+        // --- Copy-pasted old functions ---
+        async function setupCamera() { try { const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } }); document.getElementById('camera-stream').srcObject = stream; } catch (err) { console.error("Camera access denied:", err); document.getElementById('camera-view').innerHTML = `<p style="color:var(--error-color); padding: 10px;">LỖI TRUY CẬP CAMERA</p>`; } }
+        function initHolographicScanner() { const container = document.getElementById('holo-container'); if (!container || container.querySelector('canvas')) return; let scene = new THREE.Scene(); let camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000); camera.position.z = 4; let renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true }); renderer.setSize(container.clientWidth, container.clientHeight); renderer.setPixelRatio(window.devicePixelRatio); container.appendChild(renderer.domElement); const sphereGeom = new THREE.IcosahedronGeometry(1.2, 1); const sphereMat = new THREE.MeshStandardMaterial({ color: '#00e5ff', metalness: 0.6, roughness: 0.1, emissive: '#00e5ff', emissiveIntensity: 0.4, transparent: true, opacity: 0.6 }); let holoSphere = new THREE.Mesh(sphereGeom, sphereMat); scene.add(holoSphere); const wireframeGeom = new THREE.IcosahedronGeometry(1.21, 1); const wireframeMat = new THREE.MeshBasicMaterial({ color: '#00e5ff', wireframe: true, transparent: true, opacity: 0.2 }); holoSphere.add(new THREE.Mesh(wireframeGeom, wireframeMat)); const light = new THREE.DirectionalLight(0xffffff, 1.5); light.position.set(5, 5, 5); scene.add(light); scene.add(new THREE.AmbientLight(0xffffff, 0.3)); let isDragging = false, previousMousePosition = { x: 0, y: 0 }; container.addEventListener('mousedown', e => { isDragging = true; }); container.addEventListener('mouseup', e => { isDragging = false; }); container.addEventListener('mouseleave', e => { isDragging = false; }); container.addEventListener('mousemove', e => { if (!isDragging) return; const deltaMove = { x: e.offsetX - previousMousePosition.x, y: e.offsetY - previousMousePosition.y }; holoSphere.rotation.y += deltaMove.x * 0.01; holoSphere.rotation.x += deltaMove.y * 0.01; previousMousePosition = { x: e.offsetX, y: e.offsetY }; }); const clock = new THREE.Clock(); function animate() { requestAnimationFrame(animate); const elapsedTime = clock.getElapsedTime(); if (!isDragging) { holoSphere.rotation.y += 0.005; holoSphere.rotation.x += 0.002; } if(isScanning) { holoSphere.rotation.y += 0.05; holoSphere.material.emissiveIntensity = Math.sin(elapsedTime * 15) * 0.5 + 0.8; } else { holoSphere.material.emissiveIntensity = 0.4; } renderer.render(scene, camera); } animate(); }
+        function initAnalysisTerminal() { const logMessages = [ { type: 'info', text: 'Calibrating quantum sensors...' }, { type: 'info', text: 'Syncing with temporal data stream...' }, { type: 'warn', text: 'Probability matrix fluctuating...' }, { type: 'info', text: 'Environmental noise levels nominal.' }, { type: 'info', text: 'Core temperature stable at 3.14 kelvin.' }, { type: 'warn', text: 'Tachyon particle interference detected.' }, { type: 'info', text: 'Awaiting user input...' } ]; addLogMessage('YIAN A.I CORE online. System nominal.', 'success'); logInterval = setInterval(() => { const randomMsg = logMessages[Math.floor(Math.random() * logMessages.length)]; addLogMessage(randomMsg.text, randomMsg.type); }, 3000); const canvas = document.getElementById('waveform-canvas'); if (!canvas) return; const ctx = canvas.getContext('2d'); let time = 0, amplitude = 10, frequency = 0.05; function drawWaveform() { canvas.width = canvas.clientWidth; canvas.height = canvas.clientHeight; const width = canvas.width, height = canvas.height; ctx.clearRect(0, 0, width, height); ctx.beginPath(); ctx.moveTo(0, height / 2); ctx.lineWidth = 1.5; ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--primary-color'); for (let x = 0; x < width; x++) { ctx.lineTo(x, height / 2 + Math.sin(x * frequency + time) * amplitude * Math.sin(time)); } ctx.stroke(); time += 0.05; if (isScanning) { amplitude = Math.min(20, amplitude + 0.5); frequency = Math.min(0.1, frequency + 0.001); } else { amplitude = Math.max(10, amplitude - 0.5); frequency = Math.max(0.05, frequency - 0.001); } waveformAnimationId = requestAnimationFrame(drawWaveform); } drawWaveform(); }
+        function initIntroAnimation() { const introCanvas = document.getElementById('intro-canvas'); const scene = new THREE.Scene(); const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000); camera.position.z = 5; const renderer = new THREE.WebGLRenderer({ canvas: introCanvas, antialias: true, alpha: true }); renderer.setSize(window.innerWidth, window.innerHeight); renderer.setPixelRatio(window.devicePixelRatio); const coreGeom = new THREE.IcosahedronGeometry(1.5, 1); const coreMat = new THREE.MeshStandardMaterial({ color: 0x00e5ff, emissive: 0x00e5ff, emissiveIntensity: 0.5, metalness: 0.8, roughness: 0.2, transparent: true, opacity: 0.7 }); const core = new THREE.Mesh(coreGeom, coreMat); scene.add(core); const rings = []; for (let i = 0; i < 3; i++) { const ringGeom = new THREE.RingGeometry(2 + i * 0.5, 2.05 + i * 0.5, 64); const ringMat = new THREE.MeshBasicMaterial({ color: 0x00e5ff, side: THREE.DoubleSide, transparent: true, opacity: 0.5 - i * 0.1 }); const ring = new THREE.Mesh(ringGeom, ringMat); ring.rotation.x = Math.random() * Math.PI; ring.rotation.y = Math.random() * Math.PI; scene.add(ring); rings.push(ring); } const particleGeom = new THREE.BufferGeometry(); const particleCount = 10000; const posArray = new Float32Array(particleCount * 3); for (let i = 0; i < particleCount * 3; i++) { posArray[i] = (Math.random() - 0.5) * 15; } particleGeom.setAttribute('position', new THREE.BufferAttribute(posArray, 3)); const particleMat = new THREE.PointsMaterial({ size: 0.01, color: 0x00e5ff, transparent: true, opacity: 0.6 }); const particles = new THREE.Points(particleGeom, particleMat); scene.add(particles); scene.add(new THREE.AmbientLight(0xffffff, 0.2)); const pLight = new THREE.PointLight(0x00e5ff, 2, 10); pLight.position.set(0, 0, 0); scene.add(pLight); const clock = new THREE.Clock(); function animate() { const elapsedTime = clock.getElapsedTime(); if (elapsedTime > 5.0) return; requestAnimationFrame(animate); core.rotation.y += 0.005; core.rotation.x += 0.002; particles.rotation.y = elapsedTime * 0.1; rings[0].rotation.z += 0.003; rings[1].rotation.z -= 0.005; rings[2].rotation.x += 0.004; renderer.render(scene, camera); } animate(); }
     </script>
 </body>
 </html>
