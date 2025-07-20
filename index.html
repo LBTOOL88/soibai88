@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>YIAN A.I CORE v17.1 - Multi-Core System</title>
+    <title>YIAN A.I CORE v17.2 - Multi-Core System</title>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -22,6 +22,8 @@
             --warning-color: #ffd60a;
             --info-color: #64b5f6;
             --analysis-color: #c39eff;
+            --fusion-color: #c39eff;
+            --fusion-glow: rgba(195, 158, 255, 0.75);
         }
         
         body.theme-titan {
@@ -33,6 +35,10 @@
             --primary-color: #ffd600;
             --glow-color: rgba(255, 214, 0, 0.75);
             --analysis-color: #fff59d;
+        }
+        body.theme-fusion {
+            --primary-color: var(--fusion-color);
+            --glow-color: var(--fusion-glow);
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -73,7 +79,6 @@
             text-shadow: 0 0 10px var(--glow-color); transition: color 0.5s, text-shadow 0.5s;
         }
         
-        /* === AI CORE SELECTOR === */
         #core-selector { display: flex; justify-content: center; gap: 10px; margin-bottom: 10px; }
         .core-button {
             flex-grow: 1; padding: 6px; border: 1px solid var(--secondary-color); color: var(--secondary-color);
@@ -84,6 +89,10 @@
             border-color: var(--primary-color); color: var(--primary-color);
             box-shadow: 0 0 10px var(--glow-color); background: rgba(0, 229, 255, 0.1);
         }
+        .core-button[data-core="fusion"] { border-color: var(--fusion-color); color: var(--fusion-color); }
+        .core-button[data-core="fusion"].active { box-shadow: 0 0 10px var(--fusion-glow); background: rgba(195, 158, 255, 0.1); }
+        .core-button.fusion-selected { border-color: var(--fusion-color); color: var(--fusion-color); transform: scale(1.05); }
+
 
         #energy-bar-container { width: 100%; margin-bottom: 10px; }
         .energy-label { display: flex; justify-content: space-between; font-size: 0.8em; margin-bottom: 4px; padding: 0 5px; font-weight: 500; }
@@ -131,16 +140,19 @@
         #roadmap-container { margin-top: 8px; }
         #roadmap-canvas { width: 100%; height: 72px; background: rgba(0,0,0,0.5); border-radius: 3px; }
 
-        .modal-box { background: var(--container-bg); backdrop-filter: blur(10px); border: 1px solid var(--primary-color); border-radius: 15px; padding: 30px; box-shadow: 0 0 60px var(--glow-color); text-align: center; max-width: 400px; animation: fadeInContainer 0.5s; }
+        .modal-box { background: var(--container-bg); backdrop-filter: blur(10px); border: 1px solid var(--primary-color); border-radius: 15px; padding: 30px; box-shadow: 0 0 60px var(--glow-color); text-align: center; max-width: 400px; animation: fadeInContainer 0.5s; z-index: 10; position:relative; }
         .modal-box h2 { color: var(--primary-color); margin-top: 0; font-weight: 700; letter-spacing: 2px; font-size: 1.5em; }
         .modal-box p { margin: 15px 0; line-height: 1.6; font-size: 1.1em; }
         .modal-input { width: 100%; background: #000; border: 1px solid var(--primary-color); color: var(--primary-color); padding: 12px; margin-bottom: 15px; border-radius: 5px; font-size: 1.4em; text-align: center; letter-spacing: 5px; font-family: 'Rajdhani', sans-serif; }
         .modal-button { width: 100%; padding: 12px; background: var(--primary-color); color: #000; border: none; border-radius: 5px; font-size: 1.2em; font-weight: 700; cursor: pointer; transition: all 0.3s; letter-spacing: 1px; }
         #login-error { color: var(--error-color); min-height: 20px; font-weight: 700; }
-        #low-energy-warning-modal .modal-box, #titan-confirm-modal .modal-box, #titan-all-in-modal .modal-box { --primary-color: var(--warning-color); --glow-color: rgba(255, 214, 10, 0.7); }
-        #low-energy-warning-modal .modal-box h2, #titan-confirm-modal .modal-box h2, #titan-all-in-modal .modal-box h2 { color: var(--warning-color); }
+        #low-energy-warning-modal .modal-box, #titan-confirm-modal .modal-box, #titan-all-in-modal .modal-box, #random-event-modal .modal-box { --primary-color: var(--warning-color); --glow-color: rgba(255, 214, 10, 0.7); }
+        #low-energy-warning-modal .modal-box h2, #titan-confirm-modal .modal-box h2, #titan-all-in-modal .modal-box h2, #random-event-modal .modal-box h2 { color: var(--warning-color); }
         .modal-button-group { display: flex; gap: 15px; margin-top: 20px; }
         .modal-button.secondary { background: transparent; border: 1px solid var(--secondary-color); color: var(--secondary-color); }
+
+        #login-overlay { overflow: hidden; }
+        #login-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
 
         #data-center-btn { position: absolute; top: 10px; left: 10px; background: none; border: none; cursor: pointer; z-index: 10; }
         #data-center-btn svg { width: 28px; height: 28px; color: var(--primary-color); transition: all 0.3s; }
@@ -162,6 +174,14 @@
     </div>
 
     <!-- Modal Overlays -->
+    <div id="random-event-modal" class="modal-overlay">
+        <div class="modal-box">
+            <h2 id="event-title">SỰ KIỆN NGẪU NHIÊN</h2>
+            <p id="event-description">Mô tả sự kiện...</p>
+            <button class="modal-button modal-close-btn">Đã hiểu</button>
+        </div>
+    </div>
+
     <div id="low-energy-warning-modal" class="modal-overlay">
         <div class="modal-box">
             <h2>CẢNH BÁO</h2>
@@ -193,6 +213,7 @@
     </div>
 
     <div id="login-overlay" class="modal-overlay">
+        <canvas id="login-canvas"></canvas>
         <div class="modal-box">
             <h2>YÊU CẦU XÁC THỰC</h2>
             <p id="login-error"></p>
@@ -224,6 +245,7 @@
         <main>
             <div id="core-selector">
                 <button class="core-button" data-core="yian">YIAN</button>
+                <button class="core-button" data-core="fusion">FUSION</button>
                 <button class="core-button" data-core="titan">TITAN</button>
                 <button class="core-button" data-core="oracle">ORACLE</button>
             </div>
@@ -269,17 +291,22 @@
         const AI_CORES = {
             yian: { name: 'YIAN', cost: 5, color: '#00e5ff' },
             titan: { name: 'TITAN', cost: 50, color: '#ff6f00' },
-            oracle: { name: 'ORACLE', cost: 3, color: '#ffd600' }
+            oracle: { name: 'ORACLE', cost: 3, color: '#ffd600' },
+            fusion: { name: 'FUSION', cost: 60, color: '#c39eff' }
         };
         let activeCore = 'yian';
         let currentUser = null, userEnergy = 100, lowEnergyWarningShown = false;
         let resultCyclingInterval, isScanning = false;
-        let logInterval, waveformAnimationId;
+        let logInterval;
         let history = [];
         let winRateChart = null;
-        // NEW STATE VARIABLES
+        
+        // --- NEW STATE VARIABLES ---
         let titanAllInOffered = false;
         let oneTimeTitanScan = false;
+        let fusionMode = { active: false, selections: [] };
+        let activeEvent = null;
+        let eventTurnsLeft = 0;
 
         // --- DOM ELEMENTS ---
         const allModals = document.querySelectorAll('.modal-overlay');
@@ -288,7 +315,7 @@
         const titanConfirmModal = document.getElementById('titan-confirm-modal');
         const dataCenterModal = document.getElementById('data-center-modal');
         const titanAllInModal = document.getElementById('titan-all-in-modal');
-
+        const randomEventModal = document.getElementById('random-event-modal');
 
         // --- AUTH & DATA ---
         function authenticate(code) {
@@ -297,8 +324,8 @@
                 currentUser = upperCaseCode; 
                 userEnergy = 100; 
                 lowEnergyWarningShown = false; 
-                titanAllInOffered = false; // Reset on new login
-                oneTimeTitanScan = false; // Reset on new login
+                titanAllInOffered = false;
+                oneTimeTitanScan = false;
                 history = [];
                 updateEnergyBar();
                 loginOverlay.style.display = 'none'; mainContainer.style.display = 'block';
@@ -328,12 +355,28 @@
         }
 
         function setActiveCore(coreName) {
+            // Handle Fusion Mode Exit
+            if (coreName !== 'fusion' && fusionMode.active) {
+                fusionMode.active = false;
+                fusionMode.selections = [];
+                document.querySelectorAll('.core-button').forEach(b => b.classList.remove('fusion-selected'));
+                document.querySelector('.core-button[data-core="fusion"]').classList.remove('active');
+            }
+
             activeCore = coreName;
             document.body.className = `theme-${coreName}`;
             document.querySelectorAll('.core-button').forEach(btn => {
-                btn.classList.toggle('active', btn.dataset.core === coreName);
+                const isFusionButton = btn.dataset.core === 'fusion';
+                if (!isFusionButton) {
+                    btn.classList.toggle('active', btn.dataset.core === coreName);
+                }
             });
-            addLogMessage(`Active core switched to ${AI_CORES[coreName].name}.`, 'warn');
+
+            if (coreName === 'fusion') {
+                addLogMessage(`Fusion mode initiated. Select two cores.`, 'warn');
+            } else {
+                addLogMessage(`Active core switched to ${AI_CORES[coreName].name}.`, 'warn');
+            }
         }
 
         function drawRoadmap() {
@@ -415,40 +458,70 @@
 
         // --- CORE APP LOGIC ---
         function startScanProcess() {
-            const currentCoreInfo = AI_CORES[activeCore];
-            const isSpecialTitan = oneTimeTitanScan && activeCore === 'titan';
+            if (isScanning) return;
+            
+            // Handle event countdown
+            if (eventTurnsLeft > 0) {
+                eventTurnsLeft--;
+                if (eventTurnsLeft === 0) {
+                    addLogMessage(`Sự kiện '${activeEvent.name}' đã kết thúc.`, 'warn');
+                    activeEvent = null;
+                }
+            }
+            // Trigger new event?
+            if (!activeEvent && Math.random() < 0.2) { // 20% chance
+                triggerRandomEvent();
+            }
 
-            if (!isSpecialTitan && userEnergy < currentCoreInfo.cost) {
+            let currentCost = 0;
+            let scanType = activeCore;
+
+            if (fusionMode.active && fusionMode.selections.length === 2) {
+                currentCost = AI_CORES.fusion.cost;
+                scanType = 'fusion';
+            } else if (!fusionMode.active) {
+                currentCost = AI_CORES[activeCore].cost;
+            } else {
+                 addLogMessage('Fusion mode: Vui lòng chọn 2 lõi khác nhau.', 'error');
+                 return;
+            }
+
+            const isSpecialTitan = oneTimeTitanScan && activeCore === 'titan';
+            if (isSpecialTitan) {
+                currentCost = userEnergy; // Consume all
+            }
+            
+            // Apply event cost modifier
+            if (activeEvent && activeEvent.effect.costModifier) {
+                currentCost *= activeEvent.effect.costModifier;
+            }
+
+            if (userEnergy < currentCost) {
                 document.getElementById('result-text').textContent = "NĂNG LƯỢNG THẤP";
                 return;
             }
             
-            if (isScanning) return;
-
-            if (!isSpecialTitan) {
-                userEnergy -= currentCoreInfo.cost;
-            } else {
-                userEnergy = 0; // Consume all remaining energy for the special scan
-                oneTimeTitanScan = false; // Reset the flag after use
-            }
+            userEnergy -= currentCost;
+            if(isSpecialTitan) oneTimeTitanScan = false;
             updateEnergyBar();
 
-            // NEW: Check for 10% Titan "all-in" offer
             if (userEnergy <= 10 && !titanAllInOffered && activeCore !== 'titan') {
                 titanAllInModal.style.display = 'flex';
                 titanAllInOffered = true;
-            } else if (userEnergy <= 50 && !lowEnergyWarningShown) { // Original 50% warning
+            } else if (userEnergy <= 50 && !lowEnergyWarningShown) {
                  document.getElementById('low-energy-warning-modal').style.display = 'flex';
                  lowEnergyWarningShown = true;
             }
             
-            isScanning = true; document.getElementById('scan-button').disabled = true; document.getElementById('scan-button').textContent = 'ĐANG PHÂN TÍCH...';
-            document.getElementById('scan-overlay').style.display = 'flex'; document.getElementById('confidence-score').style.opacity = 0;
+            isScanning = true; 
+            document.getElementById('scan-button').disabled = true; 
+            document.getElementById('scan-button').textContent = 'ĐANG PHÂN TÍCH...';
+            document.getElementById('scan-overlay').style.display = 'flex'; 
+            document.getElementById('confidence-score').style.opacity = 0;
             document.getElementById('probability-panel').style.display = 'none';
 
-            addLogMessage(`Scan initiated with ${AI_CORES[activeCore].name} core.`, 'info');
-            addLogMessage('Analyzing environmental data...', 'analysis');
-            addLogMessage('Cross-referencing 1.2M historical data points...', 'analysis');
+            const coreName = scanType === 'fusion' ? `FUSION (${fusionMode.selections.join('+')})` : AI_CORES[activeCore].name;
+            addLogMessage(`Scan initiated with ${coreName} core.`, 'info');
             
             resultCyclingInterval = setInterval(() => {
                 document.getElementById('result-text').textContent = ["TAY CON", "NHÀ CÁI", "HOÀ"][Math.floor(Math.random() * 3)];
@@ -456,19 +529,39 @@
 
             setTimeout(() => {
                 clearInterval(resultCyclingInterval);
-                isScanning = false; document.getElementById('scan-button').disabled = false; document.getElementById('scan-button').textContent = 'KHỞI TẠO QUÉT';
+                isScanning = false; 
+                document.getElementById('scan-button').disabled = false; 
+                document.getElementById('scan-button').textContent = 'KHỞI TẠO QUÉT';
                 document.getElementById('scan-overlay').style.display = 'none';
-                let finalResult = generateRandomResult();
-                displayResult(finalResult);
+                let finalResult = generateRandomResult(scanType);
+                displayResult(finalResult, scanType);
                 addLogMessage(`Optimal outcome determined: ${finalResult.winner.toUpperCase()}`, 'success');
+                
+                // Reset fusion mode after scan
+                if (fusionMode.active) {
+                    setActiveCore('yian'); // Reset to default
+                }
+
             }, 3500);
         }
         
-        function generateRandomResult() {
+        function generateRandomResult(scanType) {
             let baseBanker = 45.85, basePlayer = 44.62, baseTie = 9.53;
-            let variation = (Math.random() - 0.5) * 2;
-            if (activeCore === 'titan') variation = (Math.random() - 0.5) * 1; // Less random
-            if (activeCore === 'oracle') variation = (Math.random() - 0.5) * 3; // More random
+            let variation = (Math.random() - 0.5) * 2; // YIAN default
+            let pairChance = 0.075;
+
+            if (scanType === 'titan' || (scanType ==='fusion' && fusionMode.selections.includes('titan'))) {
+                 variation = (Math.random() - 0.5) * 1; // Less random
+            }
+            if (scanType === 'oracle' || (scanType ==='fusion' && fusionMode.selections.includes('oracle'))) {
+                 variation = (Math.random() - 0.5) * 3; // More random
+                 pairChance = 0.15; // Oracle is better at spotting pairs
+            }
+            
+            // Event modifier
+            if (activeEvent && activeEvent.effect.accuracy) {
+                variation *= activeEvent.effect.accuracy;
+            }
 
             let probBanker = baseBanker + variation;
             let probPlayer = basePlayer - variation;
@@ -480,8 +573,10 @@
 
             let roll = Math.random() * 100;
             let winner = '';
-            // TITAN core has a 99% chance to pick the highest probability
-            if (activeCore === 'titan' && Math.random() < 0.99) {
+            
+            let isHighCertainty = (scanType === 'titan' || scanType === 'fusion');
+
+            if (isHighCertainty && Math.random() < 0.99) {
                 winner = probBanker > probPlayer ? 'Nhà cái' : 'Tay con';
             } else {
                 if (roll < probBanker) winner = "Nhà cái";
@@ -490,13 +585,13 @@
             }
             
             let pairs = [];
-            if (Math.random() < 0.075) pairs.push("Con đôi");
-            if (Math.random() < 0.075) pairs.push("Cái đôi");
+            if (Math.random() < pairChance) pairs.push("Con đôi");
+            if (Math.random() < pairChance) pairs.push("Cái đôi");
 
             return { winner, pairs, probabilities: { banker: probBanker, player: probPlayer, tie: probTie } };
         }
 
-        function displayResult(result) {
+        function displayResult(result, scanType) {
             history.push(result);
             drawRoadmap();
 
@@ -504,7 +599,8 @@
             if (result.pairs.length > 0) resultString += ` + ${result.pairs.join(' + ')}`;
             document.getElementById('result-text').textContent = resultString;
 
-            const confidence = activeCore === 'titan' ? 99 : Math.floor(Math.random() * (95 - 80 + 1)) + 80;
+            const isHighCertainty = (scanType === 'titan' || scanType === 'fusion' || oneTimeTitanScan);
+            const confidence = isHighCertainty ? 99 : Math.floor(Math.random() * (95 - 80 + 1)) + 80;
             const confidenceScoreEl = document.getElementById('confidence-score');
             confidenceScoreEl.textContent = `A.I. TIN CẬY: ${confidence}%`;
             confidenceScoreEl.style.opacity = 1;
@@ -527,10 +623,39 @@
         document.querySelectorAll('.core-button').forEach(button => {
             button.addEventListener('click', (e) => {
                 const coreName = e.target.dataset.core;
-                if (coreName === 'titan' && !oneTimeTitanScan) { // Don't show confirm if it's the special scan
-                    titanConfirmModal.style.display = 'flex';
+
+                if (coreName === 'fusion') {
+                    fusionMode.active = !fusionMode.active;
+                    if (fusionMode.active) {
+                        setActiveCore('fusion');
+                        button.classList.add('active');
+                    } else {
+                        setActiveCore('yian'); // Revert to default
+                        button.classList.remove('active');
+                    }
+                    return;
+                }
+
+                if (fusionMode.active) {
+                    const selectionIndex = fusionMode.selections.indexOf(coreName);
+                    if (selectionIndex > -1) {
+                        fusionMode.selections.splice(selectionIndex, 1);
+                        e.target.classList.remove('fusion-selected');
+                    } else {
+                        if (fusionMode.selections.length < 2) {
+                            fusionMode.selections.push(coreName);
+                            e.target.classList.add('fusion-selected');
+                        }
+                    }
+                    if (fusionMode.selections.length === 2) {
+                        addLogMessage(`Fusion cores selected: ${fusionMode.selections.join(' & ')}. Ready to scan.`, 'analysis');
+                    }
                 } else {
-                    setActiveCore(coreName);
+                    if (coreName === 'titan' && !oneTimeTitanScan) {
+                        titanConfirmModal.style.display = 'flex';
+                    } else {
+                        setActiveCore(coreName);
+                    }
                 }
             });
         });
@@ -541,17 +666,13 @@
         });
         document.getElementById('titan-cancel-btn').addEventListener('click', () => { titanConfirmModal.style.display = 'none'; });
         
-        // NEW: Event listeners for the "All-In" modal
         document.getElementById('titan-all-in-confirm-btn').addEventListener('click', () => {
             setActiveCore('titan');
-            oneTimeTitanScan = true; // Enable one special scan
+            oneTimeTitanScan = true;
             titanAllInModal.style.display = 'none';
             addLogMessage('Lõi Titan được kích hoạt cho lần quét cuối cùng!', 'warn');
         });
-        document.getElementById('titan-all-in-cancel-btn').addEventListener('click', () => {
-            titanAllInModal.style.display = 'none';
-        });
-
+        document.getElementById('titan-all-in-cancel-btn').addEventListener('click', () => { titanAllInModal.style.display = 'none'; });
 
         document.getElementById('data-center-btn').addEventListener('click', () => {
             updateDataCenter();
@@ -570,6 +691,7 @@
         // --- INITIALIZATION ---
         window.addEventListener('load', () => {
             initIntroAnimation();
+            initLoginAnimation();
             setTimeout(() => {
                 document.getElementById('startup-intro').style.transition = 'opacity 1s';
                 document.getElementById('startup-intro').style.opacity = 0;
@@ -577,13 +699,104 @@
                     document.getElementById('startup-intro').style.display = 'none';
                     loginOverlay.style.display = 'flex';
                 }, 1000);
-            }, 6500); // Adjusted for longer intro
+            }, 6500);
         });
 
         // --- Background and Holographic Functions ---
         async function setupCamera() { try { const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } }); document.getElementById('camera-stream').srcObject = stream; } catch (err) { console.error("Camera access denied:", err); document.getElementById('camera-view').innerHTML = `<p style="color:var(--error-color); padding: 10px;">LỖI TRUY CẬP CAMERA</p>`; } }
         function initHolographicScanner() { const container = document.getElementById('holo-container'); if (!container || container.querySelector('canvas')) return; let scene = new THREE.Scene(); let camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000); camera.position.z = 4; let renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true }); renderer.setSize(container.clientWidth, container.clientHeight); renderer.setPixelRatio(window.devicePixelRatio); container.appendChild(renderer.domElement); const sphereGeom = new THREE.IcosahedronGeometry(1.2, 1); const sphereMat = new THREE.MeshStandardMaterial({ color: '#00e5ff', metalness: 0.6, roughness: 0.1, emissive: '#00e5ff', emissiveIntensity: 0.4, transparent: true, opacity: 0.6 }); let holoSphere = new THREE.Mesh(sphereGeom, sphereMat); scene.add(holoSphere); const wireframeGeom = new THREE.IcosahedronGeometry(1.21, 1); const wireframeMat = new THREE.MeshBasicMaterial({ color: '#00e5ff', wireframe: true, transparent: true, opacity: 0.2 }); holoSphere.add(new THREE.Mesh(wireframeGeom, wireframeMat)); const light = new THREE.DirectionalLight(0xffffff, 1.5); light.position.set(5, 5, 5); scene.add(light); scene.add(new THREE.AmbientLight(0xffffff, 0.3)); let isDragging = false, previousMousePosition = { x: 0, y: 0 }; container.addEventListener('mousedown', e => { isDragging = true; }); container.addEventListener('mouseup', e => { isDragging = false; }); container.addEventListener('mouseleave', e => { isDragging = false; }); container.addEventListener('mousemove', e => { if (!isDragging) return; const deltaMove = { x: e.offsetX - previousMousePosition.x, y: e.offsetY - previousMousePosition.y }; holoSphere.rotation.y += deltaMove.x * 0.01; holoSphere.rotation.x += deltaMove.y * 0.01; previousMousePosition = { x: e.offsetX, y: e.offsetY }; }); const clock = new THREE.Clock(); function animate() { requestAnimationFrame(animate); const elapsedTime = clock.getElapsedTime(); if (!isDragging) { holoSphere.rotation.y += 0.005; holoSphere.rotation.x += 0.002; } if(isScanning) { holoSphere.rotation.y += 0.05; holoSphere.material.emissiveIntensity = Math.sin(elapsedTime * 15) * 0.5 + 0.8; } else { holoSphere.material.emissiveIntensity = 0.4; } renderer.render(scene, camera); } animate(); }
-        function initAnalysisTerminal() { const logMessages = [ { type: 'info', text: 'Calibrating quantum sensors...' }, { type: 'info', text: 'Syncing with temporal data stream...' }, { type: 'warn', text: 'Probability matrix fluctuating...' }, { type: 'info', text: 'Environmental noise levels nominal.' }, { type: 'info', text: 'Core temperature stable at 3.14 kelvin.' }, { type: 'warn', text: 'Tachyon particle interference detected.' }, { type: 'info', text: 'Awaiting user input...' } ]; addLogMessage('YIAN A.I CORE online. System nominal.', 'success'); logInterval = setInterval(() => { const randomMsg = logMessages[Math.floor(Math.random() * logMessages.length)]; addLogMessage(randomMsg.text, randomMsg.type); }, 3000); }
+        
+        // --- NEW: Environmental Factors & Random Events ---
+        const ENVIRONMENTAL_LOGS = [ { type: 'info', text: 'Calibrating quantum sensors...' }, { type: 'info', text: 'Syncing with temporal data stream...' }, { type: 'warn', text: 'Probability matrix fluctuating...' }, { type: 'info', text: 'Environmental noise levels nominal.' }, { type: 'info', text: 'Core temperature stable at 3.14 kelvin.' }, { type: 'warn', text: 'Tachyon particle interference detected.' }, { type: 'analysis', text: 'Ghi nhận 3 thiết bị không dây trong phạm vi.'}, { type: 'warn', text: 'Nhiễu tín hiệu điện từ. Đang hiệu chỉnh...'}, { type: 'info', text: 'Môi trường ánh sáng tối ưu.'}, { type: 'info', text: 'Awaiting user input...' } ];
+        const RANDOM_EVENTS = [
+            { name: "Nhiễu Loạn Từ Trường", description: "Chi phí năng lượng cho 2 lần quét tiếp theo tăng 20%.", duration: 2, effect: { costModifier: 1.2 } },
+            { name: "Dòng Dữ Liệu Thuận Lợi", description: "Độ chính xác của lõi YIAN và ORACLE tăng trong 3 lần quét.", duration: 3, effect: { accuracy: 0.5 } }, // smaller variation is better
+            { name: "Nguồn Năng Lượng Phụ", description: "Phát hiện nguồn năng lượng dư thừa. +15 Năng lượng.", duration: 0, effect: { energyBonus: 15 } },
+            { name: "Lõi Quá Tải", description: "Lõi ORACLE cần được làm mát. Không khả dụng trong 2 lần quét.", duration: 2, effect: { disableCore: 'oracle' } }
+        ];
+
+        function triggerRandomEvent() {
+            const event = RANDOM_EVENTS[Math.floor(Math.random() * RANDOM_EVENTS.length)];
+            activeEvent = event;
+            eventTurnsLeft = event.duration;
+
+            document.getElementById('event-title').textContent = `SỰ KIỆN: ${event.name}`;
+            document.getElementById('event-description').textContent = event.description;
+            randomEventModal.style.display = 'flex';
+
+            addLogMessage(`Sự kiện kích hoạt: ${event.name}`, 'warn');
+
+            if (event.effect.energyBonus) {
+                userEnergy = Math.min(100, userEnergy + event.effect.energyBonus);
+                updateEnergyBar();
+            }
+            if (event.effect.disableCore) {
+                document.querySelector(`.core-button[data-core="${event.effect.disableCore}"]`).disabled = true;
+                if (activeCore === event.effect.disableCore) {
+                    setActiveCore('yian');
+                }
+            }
+        }
+
+        function initAnalysisTerminal() { 
+            addLogMessage('YIAN A.I CORE online. System nominal.', 'success'); 
+            logInterval = setInterval(() => { 
+                const randomMsg = ENVIRONMENTAL_LOGS[Math.floor(Math.random() * ENVIRONMENTAL_LOGS.length)]; 
+                addLogMessage(randomMsg.text, randomMsg.type); 
+            }, 4000); 
+        }
+
+        // --- NEW: 3D LOGIN SCREEN ---
+        function initLoginAnimation() {
+            const canvas = document.getElementById('login-canvas');
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.z = 5;
+            const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+
+            const geometry = new THREE.BoxGeometry(1.5, 1.5, 1.5);
+            const material = new THREE.MeshBasicMaterial({ color: 0x00e5ff, wireframe: true });
+            const cube = new THREE.Mesh(geometry, material);
+            scene.add(cube);
+
+            const particlesGeom = new THREE.BufferGeometry();
+            const particlesCnt = 5000;
+            const posArray = new Float32Array(particlesCnt * 3);
+            for(let i = 0; i < particlesCnt * 3; i++) {
+                posArray[i] = (Math.random() - 0.5) * 10;
+            }
+            particlesGeom.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+            const particlesMat = new THREE.PointsMaterial({ size: 0.005, color: 0x00e5ff });
+            const particles = new THREE.Points(particlesGeom, particlesMat);
+            scene.add(particles);
+
+            let mouseX = 0, mouseY = 0;
+            document.addEventListener('mousemove', (event) => {
+                mouseX = (event.clientX / window.innerWidth) * 2 - 1;
+                mouseY = -(event.clientY / window.innerHeight) * 2 + 1;
+            });
+
+            function animate() {
+                requestAnimationFrame(animate);
+                cube.rotation.x += 0.005;
+                cube.rotation.y += 0.005;
+                particles.rotation.y += 0.0005;
+                
+                // Make camera follow mouse
+                camera.position.x += (mouseX * 2 - camera.position.x) * 0.05;
+                camera.position.y += (mouseY * 2 - camera.position.y) * 0.05;
+                camera.lookAt(scene.position);
+
+                renderer.render(scene, camera);
+            }
+            animate();
+            window.addEventListener('resize', () => {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            });
+        }
         
         // --- NEW: ADVANCED INTRO ANIMATION ---
         function initIntroAnimation() {
@@ -596,24 +809,20 @@
             renderer.setSize(window.innerWidth, window.innerHeight);
             renderer.setPixelRatio(window.devicePixelRatio);
 
-            // --- Card Data ---
             const cardSuits = ['CON', 'CÁI'];
             const cardRanks = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
             const cardGroup = new THREE.Group();
 
-            // --- Card Creation ---
             const cardWidth = 10;
             const cardHeight = cardWidth * 1.4;
             const cardGeometry = new THREE.PlaneGeometry(cardWidth, cardHeight, 1, 1);
 
             for (let i = 0; i < 52; i++) {
-                // Create canvas for texture
                 const canvas = document.createElement('canvas');
                 canvas.width = 256;
-                canvas.height = 358; // 1.4 ratio
+                canvas.height = 358;
                 const context = canvas.getContext('2d');
 
-                // Card style
                 context.fillStyle = 'rgba(10, 25, 40, 0.7)';
                 context.strokeStyle = '#00e5ff';
                 context.lineWidth = 8;
@@ -626,7 +835,6 @@
                 context.fill();
                 context.stroke();
 
-                // Add text
                 context.fillStyle = '#00e5ff';
                 context.font = 'bold 40px Rajdhani';
                 context.textAlign = 'center';
@@ -648,7 +856,6 @@
 
                 const card = new THREE.Mesh(cardGeometry, material);
 
-                // Position cards in a spiral tunnel
                 const angle = i * 0.2;
                 const radius = 15 + i * 0.1;
                 card.position.x = Math.cos(angle) * radius;
@@ -659,7 +866,6 @@
             }
             scene.add(cardGroup);
 
-            // --- Particles ---
             const particleGeom = new THREE.BufferGeometry();
             const particleCount = 15000;
             const posArray = new Float32Array(particleCount * 3);
@@ -675,13 +881,10 @@
             const particles = new THREE.Points(particleGeom, particleMat);
             scene.add(particles);
 
-            // --- Animation ---
             const clock = new THREE.Clock();
             function animate() {
                 const elapsedTime = clock.getElapsedTime();
-                if (elapsedTime > 6.0) { // Stop animation loop
-                    return;
-                }
+                if (elapsedTime > 6.0) { return; }
                 requestAnimationFrame(animate);
                 cardGroup.position.z += 1.5;
                 particles.rotation.z = elapsedTime * 0.05;
