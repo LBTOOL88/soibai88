@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>YIAN A.I CORE v17.0 - Multi-Core System</title>
+    <title>YIAN A.I CORE v17.1 - Multi-Core System</title>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -51,8 +51,8 @@
         .modal-overlay { background: rgba(0, 0, 0, 0.85); display: none; }
         
         #intro-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
-        #intro-text-container { z-index: 2001; text-align: center; color: var(--secondary-color); }
-        #intro-text { font-size: 1.5em; letter-spacing: 4px; opacity: 0; animation: fadeInText 3s 1s ease-in-out forwards; }
+        #intro-text-container { z-index: 2001; text-align: center; color: var(--secondary-color); pointer-events: none; }
+        #intro-text { font-size: 1.5em; letter-spacing: 4px; opacity: 0; animation: fadeInText 3s 1s ease-in-out forwards; text-shadow: 0 0 15px var(--glow-color); }
         @keyframes fadeInText { 0% { opacity: 0; transform: translateY(20px); } 50% { opacity: 1; transform: translateY(0); } 100% { opacity: 1; } }
 
         .container { 
@@ -137,8 +137,8 @@
         .modal-input { width: 100%; background: #000; border: 1px solid var(--primary-color); color: var(--primary-color); padding: 12px; margin-bottom: 15px; border-radius: 5px; font-size: 1.4em; text-align: center; letter-spacing: 5px; font-family: 'Rajdhani', sans-serif; }
         .modal-button { width: 100%; padding: 12px; background: var(--primary-color); color: #000; border: none; border-radius: 5px; font-size: 1.2em; font-weight: 700; cursor: pointer; transition: all 0.3s; letter-spacing: 1px; }
         #login-error { color: var(--error-color); min-height: 20px; font-weight: 700; }
-        #low-energy-warning-modal .modal-box, #titan-confirm-modal .modal-box { --primary-color: var(--warning-color); --glow-color: rgba(255, 214, 10, 0.7); }
-        #low-energy-warning-modal .modal-box h2, #titan-confirm-modal .modal-box h2 { color: var(--warning-color); }
+        #low-energy-warning-modal .modal-box, #titan-confirm-modal .modal-box, #titan-all-in-modal .modal-box { --primary-color: var(--warning-color); --glow-color: rgba(255, 214, 10, 0.7); }
+        #low-energy-warning-modal .modal-box h2, #titan-confirm-modal .modal-box h2, #titan-all-in-modal .modal-box h2 { color: var(--warning-color); }
         .modal-button-group { display: flex; gap: 15px; margin-top: 20px; }
         .modal-button.secondary { background: transparent; border: 1px solid var(--secondary-color); color: var(--secondary-color); }
 
@@ -152,13 +152,68 @@
     </style>
 </head>
 <body>
+    <!-- Canvases and Modals -->
     <canvas id="background-vfx"></canvas>
-    <div id="startup-intro"> <canvas id="intro-canvas"></canvas> <div id="intro-text-container"> <p id="intro-text">INITIATING YIAN A.I CORE...</p> </div> </div>
-    <div id="low-energy-warning-modal" class="modal-overlay"> <div class="modal-box"> <h2>CẢNH BÁO</h2> <p>NĂNG LƯỢNG ĐANG CẠN! ẢNH HƯỞNG ĐẾN KẾT QUẢ! <br> HÃY RÚT RA NẠP LẠI HOẶC LIÊN HỆ @LONGBAOF168!</p> <button class="modal-button modal-close-btn">Đã hiểu</button> </div> </div>
-    <div id="titan-confirm-modal" class="modal-overlay"> <div class="modal-box"> <h2>KÍCH HOẠT LÕI TITAN</h2> <p>KHI KÍCH HOẠT SẼ CHO RA 1 KẾT QUẢ ĐÁNH TẤT TAY! TỈ LỆ 99%.<br>TIÊU TỐN 50 NĂNG LƯỢNG 1 LẦN.</p> <div class="modal-button-group"> <button id="titan-cancel-btn" class="modal-button secondary">HỦY BỎ</button> <button id="titan-confirm-btn" class="modal-button">XÁC NHẬN</button> </div> </div> </div>
-    <div id="login-overlay" class="modal-overlay"> <div class="modal-box"> <h2>YÊU CẦU XÁC THỰC</h2> <p id="login-error"></p> <input type="text" id="access-code-input" class="modal-input" placeholder="NHẬP MÃ"> <button id="login-button" class="modal-button">TRUY CẬP</button> </div> </div>
-    <div id="data-center-modal" class="modal-overlay"> <div class="modal-box"> <h2>TRUNG TÂM DỮ LIỆU</h2> <canvas id="winRateChart"></canvas> <div class="stat-item"><span>Tổng số lần quét:</span><span id="stats-total-scans">0</span></div> <div class="stat-item"><span>Tỷ lệ Thắng (Cái/Con/Hòa):</span><span id="stats-win-rate">--/--/--</span></div> <div class="stat-item"><span>Số lần Con Đôi:</span><span id="stats-player-pair">0</span></div> <div class="stat-item"><span>Số lần Cái Đôi:</span><span id="stats-banker-pair">0</span></div> <button class="modal-button modal-close-btn" style="margin-top: 20px;">ĐÓNG</button> </div> </div>
+    <div id="startup-intro">
+        <canvas id="intro-canvas"></canvas>
+        <div id="intro-text-container">
+            <p id="intro-text">INITIATING YIAN A.I CORE...</p>
+        </div>
+    </div>
 
+    <!-- Modal Overlays -->
+    <div id="low-energy-warning-modal" class="modal-overlay">
+        <div class="modal-box">
+            <h2>CẢNH BÁO</h2>
+            <p>NĂNG LƯỢNG ĐANG CẠN! ẢNH HƯỞNG ĐẾN KẾT QUẢ! <br> HÃY RÚT RA NẠP LẠI HOẶC LIÊN HỆ @LONGBAOF168!</p>
+            <button class="modal-button modal-close-btn">Đã hiểu</button>
+        </div>
+    </div>
+    
+    <div id="titan-all-in-modal" class="modal-overlay">
+        <div class="modal-box">
+            <h2 style="color: #ff6f00;">CƠ HỘI CUỐI CÙNG!</h2>
+            <p>HÃY CHUYỂN QUA LÕI TITAN! <br> ĐÁNH TẤT TAY, CƠ HỘI THẮNG ĐANG 99%.</p>
+            <div class="modal-button-group">
+                <button id="titan-all-in-cancel-btn" class="modal-button secondary">BỎ QUA</button>
+                <button id="titan-all-in-confirm-btn" class="modal-button">XÁC NHẬN</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="titan-confirm-modal" class="modal-overlay">
+        <div class="modal-box">
+            <h2>KÍCH HOẠT LÕI TITAN</h2>
+            <p>KHI KÍCH HOẠT SẼ CHO RA 1 KẾT QUẢ ĐÁNH TẤT TAY! TỈ LỆ 99%.<br>TIÊU TỐN 50 NĂNG LƯỢNG 1 LẦN.</p>
+            <div class="modal-button-group">
+                <button id="titan-cancel-btn" class="modal-button secondary">HỦY BỎ</button>
+                <button id="titan-confirm-btn" class="modal-button">XÁC NHẬN</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="login-overlay" class="modal-overlay">
+        <div class="modal-box">
+            <h2>YÊU CẦU XÁC THỰC</h2>
+            <p id="login-error"></p>
+            <input type="text" id="access-code-input" class="modal-input" placeholder="NHẬP MÃ">
+            <button id="login-button" class="modal-button">TRUY CẬP</button>
+        </div>
+    </div>
+
+    <div id="data-center-modal" class="modal-overlay">
+        <div class="modal-box">
+            <h2>TRUNG TÂM DỮ LIỆU</h2>
+            <canvas id="winRateChart"></canvas>
+            <div class="stat-item"><span>Tổng số lần quét:</span><span id="stats-total-scans">0</span></div>
+            <div class="stat-item"><span>Tỷ lệ Thắng (Cái/Con/Hòa):</span><span id="stats-win-rate">--/--/--</span></div>
+            <div class="stat-item"><span>Số lần Con Đôi:</span><span id="stats-player-pair">0</span></div>
+            <div class="stat-item"><span>Số lần Cái Đôi:</span><span id="stats-banker-pair">0</span></div>
+            <button class="modal-button modal-close-btn" style="margin-top: 20px;">ĐÓNG</button>
+        </div>
+    </div>
+
+    <!-- Main Application Container -->
     <div class="container">
         <header>
             <button id="data-center-btn">
@@ -222,6 +277,9 @@
         let logInterval, waveformAnimationId;
         let history = [];
         let winRateChart = null;
+        // NEW STATE VARIABLES
+        let titanAllInOffered = false;
+        let oneTimeTitanScan = false;
 
         // --- DOM ELEMENTS ---
         const allModals = document.querySelectorAll('.modal-overlay');
@@ -229,12 +287,19 @@
         const mainContainer = document.querySelector('.container');
         const titanConfirmModal = document.getElementById('titan-confirm-modal');
         const dataCenterModal = document.getElementById('data-center-modal');
+        const titanAllInModal = document.getElementById('titan-all-in-modal');
+
 
         // --- AUTH & DATA ---
         function authenticate(code) {
             const upperCaseCode = code.toUpperCase();
             if (ACCESS_CODES.hasOwnProperty(upperCaseCode)) {
-                currentUser = upperCaseCode; userEnergy = 100; lowEnergyWarningShown = false; history = [];
+                currentUser = upperCaseCode; 
+                userEnergy = 100; 
+                lowEnergyWarningShown = false; 
+                titanAllInOffered = false; // Reset on new login
+                oneTimeTitanScan = false; // Reset on new login
+                history = [];
                 updateEnergyBar();
                 loginOverlay.style.display = 'none'; mainContainer.style.display = 'block';
                 setupCamera(); initHolographicScanner(); initAnalysisTerminal(); setActiveCore('yian');
@@ -350,10 +415,32 @@
 
         // --- CORE APP LOGIC ---
         function startScanProcess() {
-            const currentCost = AI_CORES[activeCore].cost;
-            if (userEnergy < currentCost) { document.getElementById('result-text').textContent = "NĂNG LƯỢNG THẤP"; return; }
-            userEnergy -= currentCost; updateEnergyBar();
-            if (userEnergy <= 50 && !lowEnergyWarningShown) { document.getElementById('low-energy-warning-modal').style.display = 'flex'; lowEnergyWarningShown = true; }
+            const currentCoreInfo = AI_CORES[activeCore];
+            const isSpecialTitan = oneTimeTitanScan && activeCore === 'titan';
+
+            if (!isSpecialTitan && userEnergy < currentCoreInfo.cost) {
+                document.getElementById('result-text').textContent = "NĂNG LƯỢNG THẤP";
+                return;
+            }
+            
+            if (isScanning) return;
+
+            if (!isSpecialTitan) {
+                userEnergy -= currentCoreInfo.cost;
+            } else {
+                userEnergy = 0; // Consume all remaining energy for the special scan
+                oneTimeTitanScan = false; // Reset the flag after use
+            }
+            updateEnergyBar();
+
+            // NEW: Check for 10% Titan "all-in" offer
+            if (userEnergy <= 10 && !titanAllInOffered && activeCore !== 'titan') {
+                titanAllInModal.style.display = 'flex';
+                titanAllInOffered = true;
+            } else if (userEnergy <= 50 && !lowEnergyWarningShown) { // Original 50% warning
+                 document.getElementById('low-energy-warning-modal').style.display = 'flex';
+                 lowEnergyWarningShown = true;
+            }
             
             isScanning = true; document.getElementById('scan-button').disabled = true; document.getElementById('scan-button').textContent = 'ĐANG PHÂN TÍCH...';
             document.getElementById('scan-overlay').style.display = 'flex'; document.getElementById('confidence-score').style.opacity = 0;
@@ -440,7 +527,7 @@
         document.querySelectorAll('.core-button').forEach(button => {
             button.addEventListener('click', (e) => {
                 const coreName = e.target.dataset.core;
-                if (coreName === 'titan') {
+                if (coreName === 'titan' && !oneTimeTitanScan) { // Don't show confirm if it's the special scan
                     titanConfirmModal.style.display = 'flex';
                 } else {
                     setActiveCore(coreName);
@@ -453,6 +540,18 @@
             titanConfirmModal.style.display = 'none';
         });
         document.getElementById('titan-cancel-btn').addEventListener('click', () => { titanConfirmModal.style.display = 'none'; });
+        
+        // NEW: Event listeners for the "All-In" modal
+        document.getElementById('titan-all-in-confirm-btn').addEventListener('click', () => {
+            setActiveCore('titan');
+            oneTimeTitanScan = true; // Enable one special scan
+            titanAllInModal.style.display = 'none';
+            addLogMessage('Lõi Titan được kích hoạt cho lần quét cuối cùng!', 'warn');
+        });
+        document.getElementById('titan-all-in-cancel-btn').addEventListener('click', () => {
+            titanAllInModal.style.display = 'none';
+        });
+
 
         document.getElementById('data-center-btn').addEventListener('click', () => {
             updateDataCenter();
@@ -478,14 +577,124 @@
                     document.getElementById('startup-intro').style.display = 'none';
                     loginOverlay.style.display = 'flex';
                 }, 1000);
-            }, 5000);
+            }, 6500); // Adjusted for longer intro
         });
 
-        // --- Copy-pasted old functions ---
+        // --- Background and Holographic Functions ---
         async function setupCamera() { try { const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } }); document.getElementById('camera-stream').srcObject = stream; } catch (err) { console.error("Camera access denied:", err); document.getElementById('camera-view').innerHTML = `<p style="color:var(--error-color); padding: 10px;">LỖI TRUY CẬP CAMERA</p>`; } }
         function initHolographicScanner() { const container = document.getElementById('holo-container'); if (!container || container.querySelector('canvas')) return; let scene = new THREE.Scene(); let camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000); camera.position.z = 4; let renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true }); renderer.setSize(container.clientWidth, container.clientHeight); renderer.setPixelRatio(window.devicePixelRatio); container.appendChild(renderer.domElement); const sphereGeom = new THREE.IcosahedronGeometry(1.2, 1); const sphereMat = new THREE.MeshStandardMaterial({ color: '#00e5ff', metalness: 0.6, roughness: 0.1, emissive: '#00e5ff', emissiveIntensity: 0.4, transparent: true, opacity: 0.6 }); let holoSphere = new THREE.Mesh(sphereGeom, sphereMat); scene.add(holoSphere); const wireframeGeom = new THREE.IcosahedronGeometry(1.21, 1); const wireframeMat = new THREE.MeshBasicMaterial({ color: '#00e5ff', wireframe: true, transparent: true, opacity: 0.2 }); holoSphere.add(new THREE.Mesh(wireframeGeom, wireframeMat)); const light = new THREE.DirectionalLight(0xffffff, 1.5); light.position.set(5, 5, 5); scene.add(light); scene.add(new THREE.AmbientLight(0xffffff, 0.3)); let isDragging = false, previousMousePosition = { x: 0, y: 0 }; container.addEventListener('mousedown', e => { isDragging = true; }); container.addEventListener('mouseup', e => { isDragging = false; }); container.addEventListener('mouseleave', e => { isDragging = false; }); container.addEventListener('mousemove', e => { if (!isDragging) return; const deltaMove = { x: e.offsetX - previousMousePosition.x, y: e.offsetY - previousMousePosition.y }; holoSphere.rotation.y += deltaMove.x * 0.01; holoSphere.rotation.x += deltaMove.y * 0.01; previousMousePosition = { x: e.offsetX, y: e.offsetY }; }); const clock = new THREE.Clock(); function animate() { requestAnimationFrame(animate); const elapsedTime = clock.getElapsedTime(); if (!isDragging) { holoSphere.rotation.y += 0.005; holoSphere.rotation.x += 0.002; } if(isScanning) { holoSphere.rotation.y += 0.05; holoSphere.material.emissiveIntensity = Math.sin(elapsedTime * 15) * 0.5 + 0.8; } else { holoSphere.material.emissiveIntensity = 0.4; } renderer.render(scene, camera); } animate(); }
-        function initAnalysisTerminal() { const logMessages = [ { type: 'info', text: 'Calibrating quantum sensors...' }, { type: 'info', text: 'Syncing with temporal data stream...' }, { type: 'warn', text: 'Probability matrix fluctuating...' }, { type: 'info', text: 'Environmental noise levels nominal.' }, { type: 'info', text: 'Core temperature stable at 3.14 kelvin.' }, { type: 'warn', text: 'Tachyon particle interference detected.' }, { type: 'info', text: 'Awaiting user input...' } ]; addLogMessage('YIAN A.I CORE online. System nominal.', 'success'); logInterval = setInterval(() => { const randomMsg = logMessages[Math.floor(Math.random() * logMessages.length)]; addLogMessage(randomMsg.text, randomMsg.type); }, 3000); const canvas = document.getElementById('waveform-canvas'); if (!canvas) return; const ctx = canvas.getContext('2d'); let time = 0, amplitude = 10, frequency = 0.05; function drawWaveform() { canvas.width = canvas.clientWidth; canvas.height = canvas.clientHeight; const width = canvas.width, height = canvas.height; ctx.clearRect(0, 0, width, height); ctx.beginPath(); ctx.moveTo(0, height / 2); ctx.lineWidth = 1.5; ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--primary-color'); for (let x = 0; x < width; x++) { ctx.lineTo(x, height / 2 + Math.sin(x * frequency + time) * amplitude * Math.sin(time)); } ctx.stroke(); time += 0.05; if (isScanning) { amplitude = Math.min(20, amplitude + 0.5); frequency = Math.min(0.1, frequency + 0.001); } else { amplitude = Math.max(10, amplitude - 0.5); frequency = Math.max(0.05, frequency - 0.001); } waveformAnimationId = requestAnimationFrame(drawWaveform); } drawWaveform(); }
-        function initIntroAnimation() { const introCanvas = document.getElementById('intro-canvas'); const scene = new THREE.Scene(); const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000); camera.position.z = 5; const renderer = new THREE.WebGLRenderer({ canvas: introCanvas, antialias: true, alpha: true }); renderer.setSize(window.innerWidth, window.innerHeight); renderer.setPixelRatio(window.devicePixelRatio); const coreGeom = new THREE.IcosahedronGeometry(1.5, 1); const coreMat = new THREE.MeshStandardMaterial({ color: 0x00e5ff, emissive: 0x00e5ff, emissiveIntensity: 0.5, metalness: 0.8, roughness: 0.2, transparent: true, opacity: 0.7 }); const core = new THREE.Mesh(coreGeom, coreMat); scene.add(core); const rings = []; for (let i = 0; i < 3; i++) { const ringGeom = new THREE.RingGeometry(2 + i * 0.5, 2.05 + i * 0.5, 64); const ringMat = new THREE.MeshBasicMaterial({ color: 0x00e5ff, side: THREE.DoubleSide, transparent: true, opacity: 0.5 - i * 0.1 }); const ring = new THREE.Mesh(ringGeom, ringMat); ring.rotation.x = Math.random() * Math.PI; ring.rotation.y = Math.random() * Math.PI; scene.add(ring); rings.push(ring); } const particleGeom = new THREE.BufferGeometry(); const particleCount = 10000; const posArray = new Float32Array(particleCount * 3); for (let i = 0; i < particleCount * 3; i++) { posArray[i] = (Math.random() - 0.5) * 15; } particleGeom.setAttribute('position', new THREE.BufferAttribute(posArray, 3)); const particleMat = new THREE.PointsMaterial({ size: 0.01, color: 0x00e5ff, transparent: true, opacity: 0.6 }); const particles = new THREE.Points(particleGeom, particleMat); scene.add(particles); scene.add(new THREE.AmbientLight(0xffffff, 0.2)); const pLight = new THREE.PointLight(0x00e5ff, 2, 10); pLight.position.set(0, 0, 0); scene.add(pLight); const clock = new THREE.Clock(); function animate() { const elapsedTime = clock.getElapsedTime(); if (elapsedTime > 5.0) return; requestAnimationFrame(animate); core.rotation.y += 0.005; core.rotation.x += 0.002; particles.rotation.y = elapsedTime * 0.1; rings[0].rotation.z += 0.003; rings[1].rotation.z -= 0.005; rings[2].rotation.x += 0.004; renderer.render(scene, camera); } animate(); }
+        function initAnalysisTerminal() { const logMessages = [ { type: 'info', text: 'Calibrating quantum sensors...' }, { type: 'info', text: 'Syncing with temporal data stream...' }, { type: 'warn', text: 'Probability matrix fluctuating...' }, { type: 'info', text: 'Environmental noise levels nominal.' }, { type: 'info', text: 'Core temperature stable at 3.14 kelvin.' }, { type: 'warn', text: 'Tachyon particle interference detected.' }, { type: 'info', text: 'Awaiting user input...' } ]; addLogMessage('YIAN A.I CORE online. System nominal.', 'success'); logInterval = setInterval(() => { const randomMsg = logMessages[Math.floor(Math.random() * logMessages.length)]; addLogMessage(randomMsg.text, randomMsg.type); }, 3000); }
+        
+        // --- NEW: ADVANCED INTRO ANIMATION ---
+        function initIntroAnimation() {
+            const introCanvas = document.getElementById('intro-canvas');
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.z = 80;
+
+            const renderer = new THREE.WebGLRenderer({ canvas: introCanvas, antialias: true, alpha: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+
+            // --- Card Data ---
+            const cardSuits = ['CON', 'CÁI'];
+            const cardRanks = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
+            const cardGroup = new THREE.Group();
+
+            // --- Card Creation ---
+            const cardWidth = 10;
+            const cardHeight = cardWidth * 1.4;
+            const cardGeometry = new THREE.PlaneGeometry(cardWidth, cardHeight, 1, 1);
+
+            for (let i = 0; i < 52; i++) {
+                // Create canvas for texture
+                const canvas = document.createElement('canvas');
+                canvas.width = 256;
+                canvas.height = 358; // 1.4 ratio
+                const context = canvas.getContext('2d');
+
+                // Card style
+                context.fillStyle = 'rgba(10, 25, 40, 0.7)';
+                context.strokeStyle = '#00e5ff';
+                context.lineWidth = 8;
+                context.beginPath();
+                context.moveTo(10, 0); context.lineTo(246, 0); context.quadraticCurveTo(256, 0, 256, 10);
+                context.lineTo(256, 348); context.quadraticCurveTo(256, 358, 246, 358);
+                context.lineTo(10, 358); context.quadraticCurveTo(0, 358, 0, 348);
+                context.lineTo(0, 10); context.quadraticCurveTo(0, 0, 10, 0);
+                context.closePath();
+                context.fill();
+                context.stroke();
+
+                // Add text
+                context.fillStyle = '#00e5ff';
+                context.font = 'bold 40px Rajdhani';
+                context.textAlign = 'center';
+                context.textBaseline = 'middle';
+                const rank = cardRanks[i % 13];
+                const suit = cardSuits[Math.floor(i / 26)];
+                context.fillText(rank, canvas.width / 2, canvas.height / 2 - 20);
+                context.font = '30px Rajdhani';
+                context.fillText(suit, canvas.width / 2, canvas.height / 2 + 20);
+
+                const texture = new THREE.CanvasTexture(canvas);
+                const material = new THREE.MeshBasicMaterial({
+                    map: texture,
+                    side: THREE.DoubleSide,
+                    transparent: true,
+                    opacity: 0.85,
+                    blending: THREE.AdditiveBlending
+                });
+
+                const card = new THREE.Mesh(cardGeometry, material);
+
+                // Position cards in a spiral tunnel
+                const angle = i * 0.2;
+                const radius = 15 + i * 0.1;
+                card.position.x = Math.cos(angle) * radius;
+                card.position.y = Math.sin(angle) * radius;
+                card.position.z = -i * 5;
+                card.rotation.z = angle + Math.PI / 2;
+                cardGroup.add(card);
+            }
+            scene.add(cardGroup);
+
+            // --- Particles ---
+            const particleGeom = new THREE.BufferGeometry();
+            const particleCount = 15000;
+            const posArray = new Float32Array(particleCount * 3);
+            for (let i = 0; i < particleCount * 3; i++) {
+                posArray[i] = (Math.random() - 0.5) * 300;
+            }
+            particleGeom.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+            const particleMat = new THREE.PointsMaterial({
+                size: 0.1, color: 0x00e5ff,
+                transparent: true, opacity: 0.7,
+                blending: THREE.AdditiveBlending
+            });
+            const particles = new THREE.Points(particleGeom, particleMat);
+            scene.add(particles);
+
+            // --- Animation ---
+            const clock = new THREE.Clock();
+            function animate() {
+                const elapsedTime = clock.getElapsedTime();
+                if (elapsedTime > 6.0) { // Stop animation loop
+                    return;
+                }
+                requestAnimationFrame(animate);
+                cardGroup.position.z += 1.5;
+                particles.rotation.z = elapsedTime * 0.05;
+                renderer.render(scene, camera);
+            }
+            animate();
+
+            window.addEventListener('resize', () => {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            });
+        }
     </script>
 </body>
 </html>
