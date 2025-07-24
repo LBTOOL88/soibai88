@@ -48,7 +48,7 @@
             font-family: var(--font-primary);
             display: flex;
             justify-content: center;
-            align-items: center;
+            align-items: flex-start;
             min-height: 100vh;
             overflow-x: hidden;
             overflow-y: auto;
@@ -432,28 +432,38 @@
 
         @media (max-width: 992px) {
             .app-container {
-                grid-template-columns: 1fr;
-                grid-template-rows: auto auto 1fr auto;
+                grid-template-columns: 1fr 1fr;
+                grid-template-rows: auto auto 1fr;
                 grid-template-areas:
-                    "header"
-                    "left-panel"
-                    "main-panel"
-                    "right-panel";
-                height: auto;
+                    "header header"
+                    "main-panel main-panel"
+                    "left-panel right-panel";
                 padding: 15px;
                 gap: 15px;
             }
-            .left-panel, .right-panel {
-                height: auto;
-            }
             .main-display-grid {
-                grid-template-rows: minmax(200px, 35vh) minmax(200px, 35vh);
+                grid-template-columns: 1fr;
+                grid-template-rows: minmax(200px, 40vh) auto;
+            }
+            #holo-container {
+                min-height: 150px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .app-container {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto auto auto auto;
+                grid-template-areas:
+                    "header"
+                    "main-panel"
+                    "left-panel"
+                    "right-panel";
             }
         }
 
         @media (max-width: 576px) {
             body {
-                align-items: flex-start;
                 -webkit-text-size-adjust: 100%;
             }
             .app-container {
@@ -487,12 +497,21 @@
             .core-button span {
                 font-size: 0.85em;
             }
-            .main-display-grid {
-                grid-template-rows: minmax(160px, 28vh) minmax(160px, 28vh);
-                gap: 10px;
+            .main-panel {
+                grid-template-rows: auto auto;
             }
-            #camera-view, #holo-container {
-                min-height: 160px;
+            .main-display-grid {
+                display: block;
+            }
+            #camera-view {
+                height: 35vh;
+                min-height: 220px;
+            }
+            #holo-container {
+                display: none;
+            }
+            .scan-controls {
+                gap: 10px;
             }
             #result-display {
                 padding: 10px 15px;
