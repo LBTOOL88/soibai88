@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>YIAN A.I CORE v17.2 - Multi-Core System</title>
+    <title>YIAN A.I CORE v19.1 - Multi-Color Cores</title>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -12,447 +12,664 @@
         @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;700&family=Share+Tech+Mono&display=swap');
         
         :root {
-            --primary-color: #00e5ff; 
+            --bg-color: #010409;
+            --primary-color: #00e5ff; /* Default YIAN color */
             --glow-color: rgba(0, 229, 255, 0.75);
-            --secondary-color: #e0e0e0; 
-            --background-color: #010409;
-            --container-bg: rgba(15, 22, 36, 0.85); 
+            --secondary-color: #c1d7e0;
+            --container-bg: rgba(10, 25, 40, 0.7);
+            --border-color: rgba(0, 229, 255, 0.3);
             --error-color: #ff3b3b;
             --success-color: #34ffb9;
             --warning-color: #ffd60a;
             --info-color: #64b5f6;
-            --analysis-color: #c39eff;
+            --font-primary: 'Rajdhani', sans-serif;
+            --font-mono: 'Share Tech Mono', monospace;
+
+            /* [NEW] Core-specific colors */
+            --yian-color: #00e5ff;
+            --yian-glow: rgba(0, 229, 255, 0.75);
+            --titan-color: #ff6f00;
+            --titan-glow: rgba(255, 111, 0, 0.75);
+            --oracle-color: #ffd60a;
+            --oracle-glow: rgba(255, 214, 10, 0.75);
             --fusion-color: #c39eff;
             --fusion-glow: rgba(195, 158, 255, 0.75);
         }
-        
-        body.theme-titan {
-            --primary-color: #ff6f00;
-            --glow-color: rgba(255, 111, 0, 0.75);
-            --analysis-color: #ff8a80;
-        }
-        body.theme-oracle {
-            --primary-color: #ffd600;
-            --glow-color: rgba(255, 214, 0, 0.75);
-            --analysis-color: #fff59d;
-        }
-        body.theme-fusion {
-            --primary-color: var(--fusion-color);
-            --glow-color: var(--fusion-glow);
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        
-        body { 
-            background-color: var(--background-color); color: var(--secondary-color); 
-            font-family: 'Rajdhani', sans-serif; display: flex; justify-content: center; 
-            align-items: center; min-height: 100vh; overflow: hidden;
-            transition: --primary-color 0.5s, --glow-color 0.5s;
+        body {
+            background-color: var(--bg-color);
+            color: var(--secondary-color);
+            font-family: var(--font-primary);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+            background-image: 
+                linear-gradient(var(--border-color) 1px, transparent 1px),
+                linear-gradient(to right, var(--border-color) 1px, var(--bg-color) 1px);
+            background-size: 40px 40px;
+            animation: bg-pan 10s linear infinite;
+        }
+
+        @keyframes bg-pan {
+            from { background-position: 0 0; }
+            to { background-position: -40px -40px; }
+        }
+
+        #startup-intro, .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 2000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
         
-        #background-vfx, #startup-intro, .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; }
-        #startup-intro, .modal-overlay { z-index: 2000; display: flex; justify-content: center; align-items: center; }
-        #background-vfx { z-index: -1; }
         #startup-intro { background-color: #000; }
-        .modal-overlay { background: rgba(0, 0, 0, 0.85); display: none; }
+        .modal-overlay { background: rgba(0, 0, 0, 0.9); display: none; }
         
-        #intro-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
-        #intro-text-container { z-index: 2001; text-align: center; color: var(--secondary-color); pointer-events: none; }
-        #intro-text { font-size: 1.5em; letter-spacing: 4px; opacity: 0; animation: fadeInText 3s 1s ease-in-out forwards; text-shadow: 0 0 15px var(--glow-color); }
-        @keyframes fadeInText { 0% { opacity: 0; transform: translateY(20px); } 50% { opacity: 1; transform: translateY(0); } 100% { opacity: 1; } }
+        #intro-canvas, #login-canvas {
+            position: absolute; top: 0; left: 0;
+            width: 100%; height: 100%;
+        }
 
-        .container { 
-            display: none; width: 100%; max-width: 420px; 
-            background: var(--container-bg); border: 1px solid var(--primary-color); 
-            border-radius: 15px; padding: 15px; 
-            box-shadow: 0 0 15px var(--glow-color), inset 0 0 15px rgba(0, 229, 255, 0.2);
-            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-            text-align: center; animation: fadeInContainer 1.5s ease-out; margin: 20px;
-            transition: border-color 0.5s, box-shadow 0.5s;
+        #intro-text-container {
+            z-index: 2001; text-align: center;
+            color: var(--secondary-color); pointer-events: none;
         }
-        @keyframes fadeInContainer { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        
-        header { position: relative; }
-        header h1 { 
-            color: var(--primary-color); font-weight: 700; font-size: 1.8em; 
-            letter-spacing: 4px; margin-bottom: 10px;
-            text-shadow: 0 0 10px var(--glow-color); transition: color 0.5s, text-shadow 0.5s;
+        #intro-text {
+            font-size: 1.5em; letter-spacing: 4px; opacity: 0;
+            animation: fadeInText 3s 1s ease-in-out forwards;
+            text-shadow: 0 0 15px var(--glow-color);
+        }
+        @keyframes fadeInText {
+            0% { opacity: 0; transform: translateY(20px); }
+            50% { opacity: 1; transform: translateY(0); }
+            100% { opacity: 1; }
+        }
+
+        /* Main App Container */
+        .app-container {
+            display: none; /* Hidden by default */
+            width: 100%;
+            height: 100vh;
+            max-width: 1400px;
+            padding: 20px;
+            gap: 20px;
+            grid-template-columns: 300px 1fr 300px;
+            grid-template-rows: auto 1fr;
+            grid-template-areas:
+                "header header header"
+                "left-panel main-panel right-panel";
+            opacity: 0;
+            animation: fadeInApp 1s 0.5s forwards;
+        }
+
+        @keyframes fadeInApp {
+            to { opacity: 1; }
+        }
+
+        .panel {
+            background: var(--container-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 15px;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            padding: 20px;
+            box-shadow: 0 0 25px rgba(0, 0, 0, 0.5), inset 0 0 15px rgba(0, 229, 255, 0.1);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            overflow: hidden;
         }
         
-        #core-selector { display: flex; justify-content: center; gap: 10px; margin-bottom: 10px; }
+        .panel-title {
+            font-size: 1.2em;
+            font-weight: 700;
+            color: var(--primary-color);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+            text-shadow: 0 0 8px var(--glow-color);
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+        }
+
+        /* Header */
+        .app-header {
+            grid-area: header;
+            text-align: center;
+            padding: 0;
+            border: none;
+            background: none;
+            box-shadow: none;
+            backdrop-filter: none;
+        }
+        .app-header h1 {
+            font-size: 2.5em;
+            font-weight: 700;
+            color: var(--primary-color);
+            letter-spacing: 8px;
+            text-shadow: 0 0 15px var(--glow-color);
+        }
+
+        /* Left Panel */
+        .left-panel { grid-area: left-panel; }
+        
+        #core-selector {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
         .core-button {
-            flex-grow: 1; padding: 6px; border: 1px solid var(--secondary-color); color: var(--secondary-color);
-            background: transparent; font-family: 'Rajdhani', sans-serif; cursor: pointer;
-            transition: all 0.3s; font-size: 0.9em; font-weight: 700; border-radius: 5px;
+            aspect-ratio: 1 / 1;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid var(--border-color);
+            color: var(--secondary-color);
+            cursor: pointer;
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.3s ease;
         }
-        .core-button.active {
-            border-color: var(--primary-color); color: var(--primary-color);
-            box-shadow: 0 0 10px var(--glow-color); background: rgba(0, 229, 255, 0.1);
+        .core-button svg {
+            width: 40%;
+            height: 40%;
+            margin-bottom: 8px;
+            transition: all 0.3s ease;
         }
-        .core-button[data-core="fusion"] { border-color: var(--fusion-color); color: var(--fusion-color); }
-        .core-button[data-core="fusion"].active { box-shadow: 0 0 10px var(--fusion-glow); background: rgba(195, 158, 255, 0.1); }
-        .core-button.fusion-selected { border-color: var(--fusion-color); color: var(--fusion-color); transform: scale(1.05); }
+        .core-button span {
+            font-weight: 700;
+            font-size: 1em;
+            letter-spacing: 1px;
+        }
+
+        /* [MODIFIED] Core Button Color Logic */
+        .core-button:hover {
+             transform: translateY(-5px);
+        }
+        .core-button.active svg {
+            transform: scale(1.1);
+        }
+        .core-button[data-core="yian"]:hover, .core-button[data-core="yian"].active {
+            border-color: var(--yian-color);
+            color: var(--yian-color);
+            box-shadow: 0 0 15px var(--yian-glow);
+            background: rgba(0, 229, 255, 0.1);
+        }
+        .core-button[data-core="titan"]:hover, .core-button[data-core="titan"].active {
+            border-color: var(--titan-color);
+            color: var(--titan-color);
+            box-shadow: 0 0 15px var(--titan-glow);
+            background: rgba(255, 111, 0, 0.1);
+        }
+        .core-button[data-core="oracle"]:hover, .core-button[data-core="oracle"].active {
+            border-color: var(--oracle-color);
+            color: var(--oracle-color);
+            box-shadow: 0 0 15px var(--oracle-glow);
+            background: rgba(255, 214, 10, 0.1);
+        }
+        .core-button[data-core="fusion"]:hover, .core-button[data-core="fusion"].active {
+            border-color: var(--fusion-color);
+            color: var(--fusion-color);
+            box-shadow: 0 0 15px var(--fusion-glow);
+            background: rgba(195, 158, 255, 0.1);
+        }
 
 
-        #energy-bar-container { width: 100%; margin-bottom: 10px; }
-        .energy-label { display: flex; justify-content: space-between; font-size: 0.8em; margin-bottom: 4px; padding: 0 5px; font-weight: 500; }
-        .energy-bar-outer { width: 100%; height: 10px; background: rgba(0,0,0,0.4); border: 1px solid var(--primary-color); border-radius: 5px; padding: 2px; transition: border-color 0.5s; }
-        .energy-bar-inner { width: 100%; height: 100%; background: linear-gradient(90deg, var(--success-color), var(--primary-color)); border-radius: 3px; transition: width 0.5s, background 0.5s, box-shadow 0.5s; box-shadow: 0 0 8px var(--success-color); }
-        .energy-bar-inner.low { background: linear-gradient(90deg, var(--warning-color), var(--error-color)); box-shadow: 0 0 8px var(--warning-color); }
+        #energy-display {
+            text-align: center;
+        }
+        #energy-bar-outer {
+            width: 100%; height: 15px;
+            background: rgba(0,0,0,0.4);
+            border: 1px solid var(--border-color);
+            border-radius: 8px; padding: 2px;
+        }
+        #energy-bar-inner {
+            width: 100%; height: 100%;
+            background: linear-gradient(90deg, var(--success-color), var(--primary-color));
+            border-radius: 5px;
+            transition: width 0.5s, background 0.5s;
+            box-shadow: 0 0 8px var(--success-color);
+        }
+        #energy-bar-inner.low {
+            background: linear-gradient(90deg, var(--warning-color), var(--error-color));
+            box-shadow: 0 0 8px var(--warning-color);
+        }
+        #energy-percent-text {
+            font-family: var(--font-mono); font-size: 1.2em;
+            margin-top: 8px; color: var(--primary-color);
+        }
 
-        #camera-view { position: relative; width: 100%; height: 90px; background: #000; border: 1px dashed var(--primary-color); border-radius: 5px; margin-bottom: 10px; overflow: hidden; transition: border-color 0.5s; }
+        /* Main Panel */
+        .main-panel {
+            grid-area: main-panel;
+            display: grid;
+            grid-template-rows: 1fr auto;
+            gap: 20px;
+        }
+        .main-display-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            height: 100%;
+        }
+        #camera-view {
+            position: relative;
+            background: #000;
+            border: 1px dashed var(--border-color);
+            border-radius: 10px;
+            overflow: hidden;
+        }
         #camera-stream { width: 100%; height: 100%; object-fit: cover; }
-        #scan-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: none; justify-content: center; align-items: center; flex-direction: column; background: rgba(52, 255, 185, 0.1); }
-        .scan-box { width: 50%; height: 60%; border: 1px solid var(--success-color); animation: scan-pulse 1s infinite; }
-        .scan-text { color: var(--success-color); margin-top: 4px; font-size: 0.8em; font-weight: bold; text-shadow: 0 0 5px var(--success-color); }
-        @keyframes scan-pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
-
-        #holo-container { width: 100%; height: 120px; margin: 5px auto; cursor: grab; }
-        
-        #scan-button { 
-            width: 90%; padding: 12px; background: var(--primary-color); color: #000; 
-            border: none; border-radius: 8px; font-size: 1.4em; font-weight: 700; 
-            cursor: pointer; transition: all 0.3s; text-shadow: 0 0 15px rgba(0,0,0,0.5); 
-            letter-spacing: 2px; margin-top: 5px;
+        #holo-container {
+            border: 1px dashed var(--border-color);
+            border-radius: 10px;
+            cursor: grab;
         }
-        #scan-button:hover:not(:disabled) { box-shadow: 0 0 30px var(--glow-color); transform: translateY(-2px); }
-        #scan-button:disabled { cursor: not-allowed; background: #555; color: #999; }
-
-        #result-display { margin-top: 10px; min-height: 50px; }
-        #result-text { margin: 0; font-size: 2em; font-weight: 700; letter-spacing: 1px; }
-        #confidence-score { margin-top: 2px; font-size: 0.9em; color: var(--primary-color); opacity: 0; transition: opacity 0.5s, color 0.5s; font-weight: 500; }
-
-        #probability-panel { display: none; margin-top: 10px; padding: 8px; background: rgba(0,0,0,0.2); border: 1px solid rgba(0, 229, 255, 0.2); border-radius: 5px; animation: fadeInPanel 0.5s ease-out; }
+        
+        .scan-controls {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+        #scan-button {
+            width: 80%;
+            max-width: 400px;
+            padding: 15px;
+            font-size: 1.5em;
+            font-weight: 700;
+            letter-spacing: 3px;
+            color: #000;
+            background: var(--primary-color);
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-shadow: 0 1px 5px rgba(0,0,0,0.4);
+        }
+        #scan-button:hover:not(:disabled) {
+            box-shadow: 0 0 35px var(--glow-color);
+            transform: scale(1.05);
+        }
+        #scan-button:disabled {
+            background: #555;
+            color: #999;
+            cursor: not-allowed;
+        }
+        
+        #result-display {
+            background: rgba(0,0,0,0.3);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            min-height: 150px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        #result-text {
+            font-family: var(--font-mono);
+            font-size: 2.5em;
+            font-weight: 700;
+            letter-spacing: 2px;
+            color: var(--success-color);
+            text-shadow: 0 0 10px var(--success-color);
+            min-height: 50px;
+        }
+        #confidence-score {
+            font-family: var(--font-mono);
+            font-size: 1em;
+            color: var(--primary-color);
+            opacity: 0;
+            transition: opacity 0.5s;
+        }
+        #probability-panel {
+            display: none;
+            width: 100%;
+            margin-top: 15px;
+            animation: fadeInPanel 0.5s ease-out;
+        }
         @keyframes fadeInPanel { from { opacity: 0; } to { opacity: 1; } }
-        .prob-item { display: flex; justify-content: space-between; align-items: center; font-size: 0.9em; margin-bottom: 4px; font-family: 'Share Tech Mono', monospace; }
-        .prob-label { text-align: left; }
-        .prob-value { font-weight: 700; color: var(--primary-color); transition: color 0.5s; }
-        .prob-bar-outer { flex-grow: 1; height: 8px; background: rgba(0,0,0,0.4); margin: 0 10px; border-radius: 4px; }
-        .prob-bar-inner { height: 100%; background: var(--primary-color); border-radius: 4px; transition: width 0.5s, background-color 0.5s; }
+        .prob-item { display: flex; justify-content: space-between; align-items: center; font-size: 0.9em; margin-bottom: 6px; font-family: var(--font-mono); }
+        .prob-bar-outer { flex-grow: 1; height: 10px; background: rgba(0,0,0,0.4); margin: 0 10px; border-radius: 5px; border: 1px solid var(--border-color); }
+        .prob-bar-inner { height: 100%; background: var(--primary-color); border-radius: 3px; transition: width 0.5s; }
+        .prob-value { font-weight: 700; color: var(--primary-color); }
 
-        #analysis-terminal { margin-top: 15px; background: rgba(0,0,0,0.3); border: 1px solid rgba(0, 229, 255, 0.3); border-radius: 5px; padding: 8px; }
-        #system-log { height: 45px; background: rgba(0,0,0,0.5); border-radius: 3px; padding: 5px; font-family: 'Share Tech Mono', monospace; font-size: 0.75em; overflow-y: scroll; color: var(--secondary-color); margin-bottom: 8px; }
-        #system-log::-webkit-scrollbar { width: 4px; }
-        #system-log::-webkit-scrollbar-thumb { background: var(--primary-color); }
-        .log-line { white-space: nowrap; }
-        .log-line.info { color: var(--info-color); } .log-line.warn { color: var(--warning-color); } .log-line.error { color: var(--error-color); } .log-line.success { color: var(--success-color); } .log-line.analysis { color: var(--analysis-color); transition: color 0.5s; }
+        /* Right Panel */
+        .right-panel { grid-area: right-panel; }
+        
+        #system-log-container { flex-grow: 1; display: flex; flex-direction: column;}
+        #system-log {
+            flex-grow: 1;
+            background: rgba(0,0,0,0.5);
+            border-radius: 5px;
+            padding: 10px;
+            font-family: var(--font-mono);
+            font-size: 0.85em;
+            overflow-y: scroll;
+            border: 1px solid var(--border-color);
+        }
+        #system-log::-webkit-scrollbar { width: 5px; }
+        #system-log::-webkit-scrollbar-track { background: transparent; }
+        #system-log::-webkit-scrollbar-thumb { background: var(--primary-color); border-radius: 5px; }
+        .log-line { white-space: nowrap; animation: fadeInLog 0.3s; }
+        @keyframes fadeInLog { from { opacity: 0; } to { opacity: 1; } }
+        .log-line.info { color: var(--info-color); } .log-line.warn { color: var(--warning-color); } .log-line.error { color: var(--error-color); } .log-line.success { color: var(--success-color); } .log-line.analysis { color: #c39eff; }
 
-        #roadmap-container { margin-top: 8px; }
-        #roadmap-canvas { width: 100%; height: 72px; background: rgba(0,0,0,0.5); border-radius: 3px; }
+        #roadmap-container { flex-grow: 1; display: flex; flex-direction: column; }
+        #roadmap-canvas {
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            border-radius: 5px;
+            border: 1px solid var(--border-color);
+        }
 
-        .modal-box { background: var(--container-bg); backdrop-filter: blur(10px); border: 1px solid var(--primary-color); border-radius: 15px; padding: 30px; box-shadow: 0 0 60px var(--glow-color); text-align: center; max-width: 400px; animation: fadeInContainer 0.5s; z-index: 10; position:relative; }
-        .modal-box h2 { color: var(--primary-color); margin-top: 0; font-weight: 700; letter-spacing: 2px; font-size: 1.5em; }
-        .modal-box p { margin: 15px 0; line-height: 1.6; font-size: 1.1em; }
-        .modal-input { width: 100%; background: #000; border: 1px solid var(--primary-color); color: var(--primary-color); padding: 12px; margin-bottom: 15px; border-radius: 5px; font-size: 1.4em; text-align: center; letter-spacing: 5px; font-family: 'Rajdhani', sans-serif; }
-        .modal-button { width: 100%; padding: 12px; background: var(--primary-color); color: #000; border: none; border-radius: 5px; font-size: 1.2em; font-weight: 700; cursor: pointer; transition: all 0.3s; letter-spacing: 1px; }
+        /* Modals */
+        .modal-box {
+            background: var(--container-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--primary-color);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 0 60px var(--glow-color);
+            text-align: center;
+            width: 90%;
+            max-width: 450px;
+            animation: fadeInContainer 0.5s;
+            z-index: 10;
+            position: relative;
+        }
+        .modal-box h2 {
+            color: var(--primary-color);
+            margin-top: 0;
+            font-weight: 700;
+            letter-spacing: 2px;
+            font-size: 1.5em;
+        }
+        .modal-input {
+            width: 100%;
+            background: rgba(0,0,0,0.5);
+            border: 1px solid var(--primary-color);
+            color: var(--primary-color);
+            padding: 12px;
+            margin: 20px 0;
+            border-radius: 5px;
+            font-size: 1.6em;
+            text-align: center;
+            letter-spacing: 8px;
+            font-family: var(--font-mono);
+        }
+        .modal-button {
+            width: 100%; padding: 12px; background: var(--primary-color);
+            color: #000; border: none; border-radius: 5px; font-size: 1.2em;
+            font-weight: 700; cursor: pointer; transition: all 0.3s; letter-spacing: 1px;
+        }
         #login-error { color: var(--error-color); min-height: 20px; font-weight: 700; }
-        #low-energy-warning-modal .modal-box, #titan-confirm-modal .modal-box, #titan-all-in-modal .modal-box, #random-event-modal .modal-box { --primary-color: var(--warning-color); --glow-color: rgba(255, 214, 10, 0.7); }
-        #low-energy-warning-modal .modal-box h2, #titan-confirm-modal .modal-box h2, #titan-all-in-modal .modal-box h2, #random-event-modal .modal-box h2 { color: var(--warning-color); }
-        .modal-button-group { display: flex; gap: 15px; margin-top: 20px; }
-        .modal-button.secondary { background: transparent; border: 1px solid var(--secondary-color); color: var(--secondary-color); }
+        
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .app-container {
+                grid-template-columns: 250px 1fr 250px;
+            }
+        }
+        @media (max-width: 992px) {
+            .app-container {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto auto 1fr auto;
+                grid-template-areas:
+                    "header"
+                    "left-panel"
+                    "main-panel"
+                    "right-panel";
+                height: auto;
+                padding: 10px;
+            }
+            .left-panel, .right-panel {
+                height: auto;
+            }
+            .main-display-grid {
+                grid-template-columns: 1fr;
+                grid-template-rows: 200px 200px;
+            }
+        }
+        @media (max-width: 576px) {
+            .app-header h1 { font-size: 1.8em; letter-spacing: 4px; }
+            #core-selector { grid-template-columns: 1fr 1fr; }
+            #result-text { font-size: 2em; }
+        }
 
-        #login-overlay { overflow: hidden; }
-        #login-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
-
-        #data-center-btn { position: absolute; top: 10px; left: 10px; background: none; border: none; cursor: pointer; z-index: 10; }
-        #data-center-btn svg { width: 28px; height: 28px; color: var(--primary-color); transition: all 0.3s; }
-        #data-center-btn:hover svg { transform: rotate(90deg) scale(1.1); }
-        #data-center-modal .modal-box { width: 95%; max-width: 450px; text-align: left; }
-        #data-center-modal .stat-item { display: flex; justify-content: space-between; padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.1); font-size: 1.1em; }
-        #data-center-modal .stat-item span:last-child { font-weight: bold; color: var(--primary-color); }
-        #winRateChart { max-height: 200px; margin: 15px 0; }
     </style>
 </head>
 <body>
-    <!-- Canvases and Modals -->
-    <canvas id="background-vfx"></canvas>
+    <!-- Startup Intro -->
     <div id="startup-intro">
         <canvas id="intro-canvas"></canvas>
         <div id="intro-text-container">
-            <p id="intro-text">INITIATING YIAN A.I CORE...</p>
+            <p id="intro-text">INITIATING YIAN A.I CORE v19...</p>
         </div>
     </div>
 
-    <!-- Modal Overlays -->
-    <div id="random-event-modal" class="modal-overlay">
-        <div class="modal-box">
-            <h2 id="event-title">SỰ KIỆN NGẪU NHIÊN</h2>
-            <p id="event-description">Mô tả sự kiện...</p>
-            <button class="modal-button modal-close-btn">Đã hiểu</button>
-        </div>
-    </div>
-
-    <div id="low-energy-warning-modal" class="modal-overlay">
-        <div class="modal-box">
-            <h2>CẢNH BÁO</h2>
-            <p>NĂNG LƯỢNG ĐANG CẠN! ẢNH HƯỞNG ĐẾN KẾT QUẢ! <br> HÃY RÚT RA NẠP LẠI HOẶC LIÊN HỆ @LONGBAOF168!</p>
-            <button class="modal-button modal-close-btn">Đã hiểu</button>
-        </div>
-    </div>
-    
-    <div id="titan-all-in-modal" class="modal-overlay">
-        <div class="modal-box">
-            <h2 style="color: #ff6f00;">CƠ HỘI CUỐI CÙNG!</h2>
-            <p>HÃY CHUYỂN QUA LÕI TITAN! <br> ĐÁNH TẤT TAY, CƠ HỘI THẮNG ĐANG 99%.</p>
-            <div class="modal-button-group">
-                <button id="titan-all-in-cancel-btn" class="modal-button secondary">BỎ QUA</button>
-                <button id="titan-all-in-confirm-btn" class="modal-button">XÁC NHẬN</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="titan-confirm-modal" class="modal-overlay">
-        <div class="modal-box">
-            <h2>KÍCH HOẠT LÕI TITAN</h2>
-            <p>KHI KÍCH HOẠT SẼ CHO RA 1 KẾT QUẢ ĐÁNH TẤT TAY! TỈ LỆ 99%.<br>TIÊU TỐN 50 NĂNG LƯỢNG 1 LẦN.</p>
-            <div class="modal-button-group">
-                <button id="titan-cancel-btn" class="modal-button secondary">HỦY BỎ</button>
-                <button id="titan-confirm-btn" class="modal-button">XÁC NHẬN</button>
-            </div>
-        </div>
-    </div>
-
+    <!-- Login Overlay -->
     <div id="login-overlay" class="modal-overlay">
         <canvas id="login-canvas"></canvas>
         <div class="modal-box">
             <h2>YÊU CẦU XÁC THỰC</h2>
             <p id="login-error"></p>
-            <input type="text" id="access-code-input" class="modal-input" placeholder="NHẬP MÃ">
-            <button id="login-button" class="modal-button">TRUY CẬP</button>
+            <input type="text" id="access-code-input" class="modal-input" placeholder="ACCESS CODE">
+            <button id="login-button" class="modal-button">TRUY CẬP HỆ THỐNG</button>
         </div>
     </div>
-
-    <div id="data-center-modal" class="modal-overlay">
-        <div class="modal-box">
-            <h2>TRUNG TÂM DỮ LIỆU</h2>
-            <canvas id="winRateChart"></canvas>
-            <div class="stat-item"><span>Tổng số lần quét:</span><span id="stats-total-scans">0</span></div>
-            <div class="stat-item"><span>Tỷ lệ Thắng (Cái/Con/Hòa):</span><span id="stats-win-rate">--/--/--</span></div>
-            <div class="stat-item"><span>Số lần Con Đôi:</span><span id="stats-player-pair">0</span></div>
-            <div class="stat-item"><span>Số lần Cái Đôi:</span><span id="stats-banker-pair">0</span></div>
-            <button class="modal-button modal-close-btn" style="margin-top: 20px;">ĐÓNG</button>
-        </div>
-    </div>
-
-    <!-- Main Application Container -->
-    <div class="container">
-        <header>
-            <button id="data-center-btn">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"> <path d="M11 2a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v12h.5a.5.5 0 0 1 0 1H.5a.5.5 0 0 1 0-1H1v-3a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v3h1V7a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v7h1V2zm1 12h-2V2h2v12zm-3 0V7H7v7h2zm-4 0v-3H2v3h2z"/> </svg>
-            </button>
-            <h1>YIAN A.I CORE</h1>
+    
+    <!-- Main Application -->
+    <div class="app-container">
+        <header class="app-header">
+            <h1>YIAN A.I. COMMAND CENTER</h1>
         </header>
-        <main>
+
+        <!-- Left Panel -->
+        <div class="left-panel panel">
+            <h2 class="panel-title">LÕI PHÂN TÍCH</h2>
             <div id="core-selector">
-                <button class="core-button" data-core="yian">YIAN</button>
-                <button class="core-button" data-core="fusion">FUSION</button>
-                <button class="core-button" data-core="titan">TITAN</button>
-                <button class="core-button" data-core="oracle">ORACLE</button>
+                <button class="core-button" data-core="yian">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 256 256"><path d="M208,32H48A16,16,0,0,0,32,48V208a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V48A16,16,0,0,0,208,32Zm0,16V77.37L181.37,104,208,130.63V208H130.63L104,181.37,77.37,208H48V130.63L74.63,104,48,77.37V48H77.37L104,74.63,130.63,48H208Z" opacity="0.2"></path><path d="M208,24H48A24,24,0,0,0,24,48V208a24,24,0,0,0,24,24H208a24,24,0,0,0,24-24V48A24,24,0,0,0,208,24Zm8,184a8,8,0,0,1-8,8H48a8,8,0,0,1-8-8V48a8,8,0,0,1,8-8H208a8,8,0,0,1,8,8ZM112,104a8,8,0,0,1-8-8V80H88a8,8,0,0,1,0-16h24a8,8,0,0,1,8,8v24A8,8,0,0,1,112,104Zm48,64H144a8,8,0,0,1,0-16h16V136a8,8,0,0,1,16,0v24A8,8,0,0,1,160,168Zm-8-48a8,8,0,0,1-8,8H88a8,8,0,0,1,0-16h64A8,8,0,0,1,152,120Z"></path></svg>
+                    <span>YIAN</span>
+                </button>
+                <button class="core-button" data-core="fusion">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 256 256"><path d="M232,128A104,104,0,1,1,128,24,104.11,104.11,0,0,1,232,128Z" opacity="0.2"></path><path d="M128,16a112,112,0,1,0,112,112A112.13,112.13,0,0,0,128,16Zm0,208a96,96,0,1,1,96-96A96.11,96.11,0,0,1,128,224Zm68-100a8,8,0,0,1-8,8H142.48l24.76,24.76a8,8,0,0,1-11.32,11.32L128,140.24,99.08,169.16a8,8,0,0,1-11.32-11.32L113.52,132H68a8,8,0,0,1,0-16h45.52L88.76,91.08A8,8,0,0,1,100.08,80L128,107.76,155.92,80a8,8,0,0,1,11.32,11.31L141.52,116H188A8,8,0,0,1,196,124Z"></path></svg>
+                    <span>FUSION</span>
+                </button>
+                <button class="core-button" data-core="titan">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 256 256"><path d="M144,160,128,224,112,160,48,144l64-16L128,64l16,64,64,16Z" opacity="0.2"></path><path d="M232,128a103.37,103.37,0,0,1-22.5,64.25,8,8,0,0,1-13-8.5A88,88,0,1,0,69.25,197.75a8,8,0,0,1-13,8.5A104,104,0,1,1,232,128ZM128,72l-16,64L48,152l64,16,16,64,16-64,64-16-64-16Z"></path></svg>
+                    <span>TITAN</span>
+                </button>
+                <button class="core-button" data-core="oracle">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 256 256"><path d="M128,24a104,104,0,1,0,104,104A104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Z" opacity="0.2"></path><path d="M128,16A112,112,0,1,0,240,128,112.13,112.13,0,0,0,128,16Zm0,208a96,96,0,1,1,96-96A96.11,96.11,0,0,1,128,224Zm0-160a64,64,0,1,0,64,64A64.07,64.07,0,0,0,128,64Zm0,112a48,48,0,1,1,48-48A48.05,48.05,0,0,1,128,176Z"></path></svg>
+                    <span>ORACLE</span>
+                </button>
             </div>
-            <div id="energy-bar-container">
-                <div class="energy-label">
-                    <span>NĂNG LƯỢNG</span>
-                    <span id="energy-percent-text">100%</span>
-                </div>
-                <div class="energy-bar-outer">
+            <div id="energy-display">
+                <h3 class="panel-title" style="margin-top: 20px; border:none; padding:0; margin-bottom: 5px;">NĂNG LƯỢNG HỆ THỐNG</h3>
+                <div id="energy-bar-outer">
                     <div id="energy-bar-inner" class="energy-bar-inner"></div>
                 </div>
+                <p id="energy-percent-text">100%</p>
             </div>
-            <div id="camera-view">
-                <video id="camera-stream" autoplay playsinline muted></video>
-                <div id="scan-overlay">
-                    <div class="scan-box"></div>
-                    <p class="scan-text">ANALYZING ENVIRONMENT...</p>
+        </div>
+
+        <!-- Main Panel -->
+        <div class="main-panel panel">
+            <div class="main-display-grid">
+                <div id="camera-view">
+                    <video id="camera-stream" autoplay playsinline muted></video>
                 </div>
+                <div id="holo-container"></div>
             </div>
-            <div id="holo-container"></div>
-            <button id="scan-button">KHỞI TẠO QUÉT</button>
-            <div id="result-display">
-                <h2 id="result-text">-- CHỜ LỆNH --</h2>
-                <div id="confidence-score"></div>
-                <div id="probability-panel">
-                    <div class="prob-item"> <span class="prob-label">NHÀ CÁI</span> <div class="prob-bar-outer"><div id="prob-bar-banker" class="prob-bar-inner"></div></div> <span id="prob-value-banker" class="prob-value">--.--%</span> </div>
-                    <div class="prob-item"> <span class="prob-label">TAY CON</span> <div class="prob-bar-outer"><div id="prob-bar-player" class="prob-bar-inner"></div></div> <span id="prob-value-player" class="prob-value">--.--%</span> </div>
-                    <div class="prob-item"> <span class="prob-label">HOÀ</span> <div class="prob-bar-outer"><div id="prob-bar-tie" class="prob-bar-inner"></div></div> <span id="prob-value-tie" class="prob-value">--.--%</span> </div>
+            <div class="scan-controls">
+                <div id="result-display">
+                    <h2 id="result-text">-- CHỜ LỆNH --</h2>
+                    <p id="confidence-score">ĐỘ TIN CẬY: --%</p>
+                    <div id="probability-panel">
+                        <div class="prob-item"> <span class="prob-label">CÁI</span> <div class="prob-bar-outer"><div id="prob-bar-banker" class="prob-bar-inner"></div></div> <span id="prob-value-banker" class="prob-value">--.--%</span> </div>
+                        <div class="prob-item"> <span class="prob-label">CON</span> <div class="prob-bar-outer"><div id="prob-bar-player" class="prob-bar-inner"></div></div> <span id="prob-value-player" class="prob-value">--.--%</span> </div>
+                        <div class="prob-item"> <span class="prob-label">HÒA</span> <div class="prob-bar-outer"><div id="prob-bar-tie" class="prob-bar-inner"></div></div> <span id="prob-value-tie" class="prob-value">--.--%</span> </div>
+                    </div>
                 </div>
+                <button id="scan-button">KHỞI TẠO QUÉT</button>
             </div>
-            <div id="analysis-terminal">
+        </div>
+
+        <!-- Right Panel -->
+        <div class="right-panel panel">
+            <div id="system-log-container">
+                <h3 class="panel-title">NHẬT KÝ HỆ THỐNG</h3>
                 <div id="system-log"></div>
-                <div id="roadmap-container">
-                    <canvas id="roadmap-canvas"></canvas>
-                </div>
             </div>
-        </main>
+            <div id="roadmap-container">
+                <h3 class="panel-title">SƠ ĐỒ LỘ TRÌNH</h3>
+                <canvas id="roadmap-canvas"></canvas>
+            </div>
+        </div>
     </div>
     
     <script>
         // --- PART 0: CONFIG & STATE ---
-        const ACCESS_CODES = { 'ALPHA23': 100, 'BRAVO77': 100, 'CHARLIE19': 100, 'DELTA05': 100, 'ECHO99': 100, 'FOXTROT42': 100, 'GOLF81': 100, 'HOTEL11': 100, 'INDIA64': 100, 'JULIETT38': 100, 'KILO02': 100, 'LIMA55': 100, 'MIKE88': 100, 'NOVEMBER29': 100, 'OSCAR76': 100, 'PAPA10': 100, 'QUEBEC47': 100, 'ROMEO91': 100, 'SIERRA33': 100, 'TANGO68': 100 };
+        const ACCESS_CODES = {
+            'CYBERNEXUS7': 100, 'MATRIXCORE9': 100, 'VOIDWALKER1': 100, 'NEBULAHOST4': 100,
+            'QUANTUMLEAP8': 100, 'ZENITHKEY22': 100, 'APEXPROTOCOL': 100, 'ECLIPSEGATE': 100,
+            'SPECTRECODE5': 100, 'ORIONPASS33': 100, 'HELIXCHAIN18': 100, 'NOVASTREAM7': 100,
+            'PULSARLINK6': 100, 'AEGISGUARD99': 100, 'CHRONOSKEY11': 100, 'VORTEXHUB21': 100,
+            'LYNXGRID77': 100, 'TITANFALL16': 100, 'ORACLEEYE88': 100, 'FUSIONDRIVE1': 100
+        };
         const AI_CORES = {
             yian: { name: 'YIAN', cost: 5, color: '#00e5ff' },
             titan: { name: 'TITAN', cost: 50, color: '#ff6f00' },
-            oracle: { name: 'ORACLE', cost: 3, color: '#ffd600' },
+            oracle: { name: 'ORACLE', cost: 3, color: '#ffd60a' },
             fusion: { name: 'FUSION', cost: 60, color: '#c39eff' }
         };
         let activeCore = 'yian';
-        let currentUser = null, userEnergy = 100, lowEnergyWarningShown = false;
-        let resultCyclingInterval, isScanning = false;
-        let logInterval;
+        let currentUser = null, userEnergy = 100;
+        let isScanning = false;
         let history = [];
-        let winRateChart = null;
         
-        // --- NEW STATE VARIABLES ---
-        let titanAllInOffered = false;
-        let oneTimeTitanScan = false;
-        let fusionMode = { active: false, selections: [] };
-        let activeEvent = null;
-        let eventTurnsLeft = 0;
-
         // --- DOM ELEMENTS ---
-        const allModals = document.querySelectorAll('.modal-overlay');
         const loginOverlay = document.getElementById('login-overlay');
-        const mainContainer = document.querySelector('.container');
-        const titanConfirmModal = document.getElementById('titan-confirm-modal');
-        const dataCenterModal = document.getElementById('data-center-modal');
-        const titanAllInModal = document.getElementById('titan-all-in-modal');
-        const randomEventModal = document.getElementById('random-event-modal');
+        const mainContainer = document.querySelector('.app-container');
 
-        // --- AUTH & DATA ---
+        // --- AUTH & INITIALIZATION ---
         function authenticate(code) {
             const upperCaseCode = code.toUpperCase();
             if (ACCESS_CODES.hasOwnProperty(upperCaseCode)) {
-                currentUser = upperCaseCode; 
-                userEnergy = 100; 
-                lowEnergyWarningShown = false; 
-                titanAllInOffered = false;
-                oneTimeTitanScan = false;
-                history = [];
-                updateEnergyBar();
-                loginOverlay.style.display = 'none'; mainContainer.style.display = 'block';
-                setupCamera(); initHolographicScanner(); initAnalysisTerminal(); setActiveCore('yian');
+                currentUser = upperCaseCode;
+                userEnergy = ACCESS_CODES[upperCaseCode];
+                loginOverlay.style.display = 'none';
+                mainContainer.style.display = 'grid';
+                initializeApp();
             } else {
                 const errorEl = document.getElementById('login-error');
                 errorEl.textContent = "MÃ TRUY CẬP KHÔNG HỢP LỆ";
                 setTimeout(() => errorEl.textContent = "", 2000);
             }
         }
+
+        function initializeApp() {
+            setActiveCore('yian');
+            updateEnergyBar();
+            setupCamera();
+            initHolographicScanner();
+            initAnalysisTerminal();
+            drawRoadmap();
+        }
         
         // --- UI & DISPLAY FUNCTIONS ---
         function updateEnergyBar() {
-            const energyBarInner = document.getElementById('energy-bar-inner'), energyPercentText = document.getElementById('energy-percent-text');
+            const energyBarInner = document.getElementById('energy-bar-inner');
+            const energyPercentText = document.getElementById('energy-percent-text');
             userEnergy = Math.max(0, userEnergy);
-            energyBarInner.style.width = `${userEnergy}%`; energyPercentText.textContent = `${Math.round(userEnergy)}%`;
-            energyBarInner.classList.toggle('low', userEnergy <= 50);
+            energyBarInner.style.width = `${userEnergy}%`;
+            energyPercentText.textContent = `${Math.round(userEnergy)}%`;
+            energyBarInner.classList.toggle('low', userEnergy <= 30);
         }
 
-        function addLogMessage(msg, type) {
+        function addLogMessage(msg, type = 'info') {
             const systemLog = document.getElementById('system-log');
             const line = document.createElement('div');
-            line.className = `log-line ${type || 'info'}`;
-            line.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+            line.className = `log-line ${type}`;
+            line.textContent = `[${new Date().toLocaleTimeString()}]> ${msg}`;
             systemLog.appendChild(line);
             systemLog.scrollTop = systemLog.scrollHeight;
         }
 
         function setActiveCore(coreName) {
-            // Handle Fusion Mode Exit
-            if (coreName !== 'fusion' && fusionMode.active) {
-                fusionMode.active = false;
-                fusionMode.selections = [];
-                document.querySelectorAll('.core-button').forEach(b => b.classList.remove('fusion-selected'));
-                document.querySelector('.core-button[data-core="fusion"]').classList.remove('active');
-            }
-
             activeCore = coreName;
-            document.body.className = `theme-${coreName}`;
-            document.querySelectorAll('.core-button').forEach(btn => {
-                const isFusionButton = btn.dataset.core === 'fusion';
-                if (!isFusionButton) {
-                    btn.classList.toggle('active', btn.dataset.core === coreName);
-                }
-            });
+            // Update the main theme color variable for other elements
+            const newColor = AI_CORES[coreName].color;
+            document.documentElement.style.setProperty('--primary-color', newColor);
+            document.documentElement.style.setProperty('--glow-color', AI_CORES[coreName].glow || `${newColor}bf`); // bf is 75% opacity hex
 
-            if (coreName === 'fusion') {
-                addLogMessage(`Fusion mode initiated. Select two cores.`, 'warn');
-            } else {
-                addLogMessage(`Active core switched to ${AI_CORES[coreName].name}.`, 'warn');
-            }
+            document.querySelectorAll('.core-button').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.core === coreName);
+            });
+            addLogMessage(`Lõi hoạt động chuyển thành ${AI_CORES[coreName].name}.`, 'warn');
         }
 
         function drawRoadmap() {
             const canvas = document.getElementById('roadmap-canvas');
             const ctx = canvas.getContext('2d');
-            canvas.width = canvas.clientWidth;
-            canvas.height = canvas.clientHeight;
-            const beadSize = canvas.height / 6; // 6 rows
-            const cols = Math.floor(canvas.width / beadSize);
+            const parent = canvas.parentElement;
+            canvas.width = parent.clientWidth;
+            canvas.height = parent.clientHeight;
+            
             ctx.clearRect(0, 0, canvas.width, canvas.height);
+            const beadSize = 12;
+            const padding = 10;
+            const cols = Math.floor((canvas.width - padding * 2) / beadSize);
+            const rows = Math.floor((canvas.height - padding * 2) / beadSize);
+
+            ctx.strokeStyle = 'rgba(0, 229, 255, 0.1)';
+            for(let i = 0; i <= cols; i++) {
+                ctx.beginPath();
+                ctx.moveTo(padding + i * beadSize, padding);
+                ctx.lineTo(padding + i * beadSize, canvas.height - padding);
+                ctx.stroke();
+            }
+            for(let i = 0; i <= rows; i++) {
+                ctx.beginPath();
+                ctx.moveTo(padding, padding + i * beadSize);
+                ctx.lineTo(canvas.width - padding, padding + i * beadSize);
+                ctx.stroke();
+            }
 
             let currentX = 0, currentY = 0;
-            history.slice(-cols * 6).forEach(result => {
-                const centerX = currentX * beadSize + beadSize / 2;
-                const centerY = currentY * beadSize + beadSize / 2;
+            history.slice(-cols * rows).forEach(result => {
+                const centerX = padding + currentX * beadSize + beadSize / 2;
+                const centerY = padding + currentY * beadSize + beadSize / 2;
                 
                 ctx.beginPath();
                 ctx.arc(centerX, centerY, beadSize / 2 - 2, 0, 2 * Math.PI);
                 
-                if (result.winner === 'Nhà cái') ctx.strokeStyle = '#ff3b3b';
-                else if (result.winner === 'Tay con') ctx.strokeStyle = '#00e5ff';
-                else ctx.strokeStyle = '#34ffb9';
+                if (result.winner === 'Nhà cái') ctx.fillStyle = '#ff3b3b';
+                else if (result.winner === 'Tay con') ctx.fillStyle = '#00e5ff';
+                else ctx.fillStyle = '#34ffb9';
                 
-                ctx.lineWidth = 2;
-                ctx.stroke();
-
-                if (result.winner === 'Hoà') {
-                    ctx.beginPath();
-                    ctx.moveTo(centerX - beadSize/3, centerY + beadSize/3);
-                    ctx.lineTo(centerX + beadSize/3, centerY - beadSize/3);
-                    ctx.stroke();
-                }
-
-                if (result.pairs.includes("Cái đôi")) {
-                    ctx.fillStyle = '#ff3b3b';
-                    ctx.beginPath(); ctx.arc(centerX - beadSize/3, centerY - beadSize/3, 2, 0, 2 * Math.PI); ctx.fill();
-                }
-                if (result.pairs.includes("Con đôi")) {
-                    ctx.fillStyle = '#00e5ff';
-                    ctx.beginPath(); ctx.arc(centerX + beadSize/3, centerY + beadSize/3, 2, 0, 2 * Math.PI); ctx.fill();
-                }
-
+                ctx.fill();
+                
                 currentY++;
-                if (currentY >= 6) { currentY = 0; currentX++; }
-            });
-        }
-
-        function updateDataCenter() {
-            const total = history.length;
-            if (total === 0) return;
-
-            const bankerWins = history.filter(h => h.winner === 'Nhà cái').length;
-            const playerWins = history.filter(h => h.winner === 'Tay con').length;
-            const ties = history.filter(h => h.winner === 'Hoà').length;
-            const playerPairs = history.filter(h => h.pairs.includes('Con đôi')).length;
-            const bankerPairs = history.filter(h => h.pairs.includes('Cái đôi')).length;
-
-            document.getElementById('stats-total-scans').textContent = total;
-            document.getElementById('stats-win-rate').textContent = `${(bankerWins/total*100).toFixed(1)}% / ${(playerWins/total*100).toFixed(1)}% / ${(ties/total*100).toFixed(1)}%`;
-            document.getElementById('stats-player-pair').textContent = playerPairs;
-            document.getElementById('stats-banker-pair').textContent = bankerPairs;
-
-            const ctx = document.getElementById('winRateChart').getContext('2d');
-            if (winRateChart) winRateChart.destroy();
-            winRateChart = new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Nhà Cái', 'Tay Con', 'Hoà'],
-                    datasets: [{
-                        data: [bankerWins, playerWins, ties],
-                        backgroundColor: ['rgba(255, 59, 59, 0.7)', 'rgba(0, 229, 255, 0.7)', 'rgba(52, 255, 185, 0.7)'],
-                        borderColor: ['#ff3b3b', '#00e5ff', '#34ffb9'],
-                        borderWidth: 1
-                    }]
-                },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: 'white', padding: 15 } } } }
+                if (currentY >= rows) { currentY = 0; currentX++; }
             });
         }
 
@@ -460,109 +677,49 @@
         function startScanProcess() {
             if (isScanning) return;
             
-            // Handle event countdown
-            if (eventTurnsLeft > 0) {
-                eventTurnsLeft--;
-                if (eventTurnsLeft === 0) {
-                    addLogMessage(`Sự kiện '${activeEvent.name}' đã kết thúc.`, 'warn');
-                    activeEvent = null;
-                }
-            }
-            // Trigger new event?
-            if (!activeEvent && Math.random() < 0.2) { // 20% chance
-                triggerRandomEvent();
-            }
-
-            let currentCost = 0;
-            let scanType = activeCore;
-
-            if (fusionMode.active && fusionMode.selections.length === 2) {
-                currentCost = AI_CORES.fusion.cost;
-                scanType = 'fusion';
-            } else if (!fusionMode.active) {
-                currentCost = AI_CORES[activeCore].cost;
-            } else {
-                 addLogMessage('Fusion mode: Vui lòng chọn 2 lõi khác nhau.', 'error');
-                 return;
-            }
-
-            const isSpecialTitan = oneTimeTitanScan && activeCore === 'titan';
-            if (isSpecialTitan) {
-                currentCost = userEnergy; // Consume all
-            }
-            
-            // Apply event cost modifier
-            if (activeEvent && activeEvent.effect.costModifier) {
-                currentCost *= activeEvent.effect.costModifier;
-            }
-
+            const currentCost = AI_CORES[activeCore].cost;
             if (userEnergy < currentCost) {
-                document.getElementById('result-text').textContent = "NĂNG LƯỢNG THẤP";
+                addLogMessage("NĂNG LƯỢNG HỆ THỐNG QUÁ THẤP", 'error');
                 return;
             }
             
             userEnergy -= currentCost;
-            if(isSpecialTitan) oneTimeTitanScan = false;
             updateEnergyBar();
-
-            if (userEnergy <= 10 && !titanAllInOffered && activeCore !== 'titan') {
-                titanAllInModal.style.display = 'flex';
-                titanAllInOffered = true;
-            } else if (userEnergy <= 50 && !lowEnergyWarningShown) {
-                 document.getElementById('low-energy-warning-modal').style.display = 'flex';
-                 lowEnergyWarningShown = true;
-            }
             
-            isScanning = true; 
-            document.getElementById('scan-button').disabled = true; 
-            document.getElementById('scan-button').textContent = 'ĐANG PHÂN TÍCH...';
-            document.getElementById('scan-overlay').style.display = 'flex'; 
-            document.getElementById('confidence-score').style.opacity = 0;
+            isScanning = true;
+            const scanButton = document.getElementById('scan-button');
+            scanButton.disabled = true;
+            scanButton.textContent = 'ĐANG PHÂN TÍCH...';
+            
             document.getElementById('probability-panel').style.display = 'none';
-
-            const coreName = scanType === 'fusion' ? `FUSION (${fusionMode.selections.join('+')})` : AI_CORES[activeCore].name;
-            addLogMessage(`Scan initiated with ${coreName} core.`, 'info');
+            const resultTextEl = document.getElementById('result-text');
+            resultTextEl.textContent = '_';
             
-            resultCyclingInterval = setInterval(() => {
-                document.getElementById('result-text').textContent = ["TAY CON", "NHÀ CÁI", "HOÀ"][Math.floor(Math.random() * 3)];
-            }, 100);
+            let cyclingInterval = setInterval(() => {
+                resultTextEl.textContent = ['ANALYZING...', 'DECRYPTING...', 'CALCULATING...'][Math.floor(Math.random() * 3)];
+            }, 150);
+            
+            addLogMessage(`Quét bắt đầu với lõi ${AI_CORES[activeCore].name}. Tiêu thụ ${currentCost} năng lượng.`, 'info');
 
             setTimeout(() => {
-                clearInterval(resultCyclingInterval);
-                isScanning = false; 
-                document.getElementById('scan-button').disabled = false; 
-                document.getElementById('scan-button').textContent = 'KHỞI TẠO QUÉT';
-                document.getElementById('scan-overlay').style.display = 'none';
-                let finalResult = generateRandomResult(scanType);
-                displayResult(finalResult, scanType);
-                addLogMessage(`Optimal outcome determined: ${finalResult.winner.toUpperCase()}`, 'success');
+                clearInterval(cyclingInterval);
+                isScanning = false;
+                scanButton.disabled = false;
+                scanButton.textContent = 'KHỞI TẠO QUÉT';
                 
-                // Reset fusion mode after scan
-                if (fusionMode.active) {
-                    setActiveCore('yian'); // Reset to default
-                }
-
+                let finalResult = generateRandomResult();
+                displayResult(finalResult);
+                addLogMessage(`Kết quả tối ưu: ${finalResult.winner.toUpperCase()}`, 'success');
             }, 3500);
         }
         
-        function generateRandomResult(scanType) {
+        function generateRandomResult() {
             let baseBanker = 45.85, basePlayer = 44.62, baseTie = 9.53;
             let variation = (Math.random() - 0.5) * 2; // YIAN default
-            let pairChance = 0.075;
-
-            if (scanType === 'titan' || (scanType ==='fusion' && fusionMode.selections.includes('titan'))) {
-                 variation = (Math.random() - 0.5) * 1; // Less random
-            }
-            if (scanType === 'oracle' || (scanType ==='fusion' && fusionMode.selections.includes('oracle'))) {
-                 variation = (Math.random() - 0.5) * 3; // More random
-                 pairChance = 0.15; // Oracle is better at spotting pairs
-            }
             
-            // Event modifier
-            if (activeEvent && activeEvent.effect.accuracy) {
-                variation *= activeEvent.effect.accuracy;
-            }
-
+            if (activeCore === 'titan') variation = (Math.random() - 0.5) * 1; // Less random
+            if (activeCore === 'oracle') variation = (Math.random() - 0.5) * 3; // More random
+            
             let probBanker = baseBanker + variation;
             let probPlayer = basePlayer - variation;
             let probTie = baseTie + (Math.random() - 0.5) * 0.2;
@@ -574,9 +731,7 @@
             let roll = Math.random() * 100;
             let winner = '';
             
-            let isHighCertainty = (scanType === 'titan' || scanType === 'fusion');
-
-            if (isHighCertainty && Math.random() < 0.99) {
+            if (activeCore === 'titan' && Math.random() < 0.95) {
                 winner = probBanker > probPlayer ? 'Nhà cái' : 'Tay con';
             } else {
                 if (roll < probBanker) winner = "Nhà cái";
@@ -584,25 +739,35 @@
                 else winner = "Hoà";
             }
             
-            let pairs = [];
-            if (Math.random() < pairChance) pairs.push("Con đôi");
-            if (Math.random() < pairChance) pairs.push("Cái đôi");
-
-            return { winner, pairs, probabilities: { banker: probBanker, player: probPlayer, tie: probTie } };
+            return { winner, probabilities: { banker: probBanker, player: probPlayer, tie: probTie } };
         }
 
-        function displayResult(result, scanType) {
+        function typeWriter(element, text, speed = 50) {
+            element.textContent = "";
+            let i = 0;
+            function type() {
+                if (i < text.length) {
+                    element.textContent += text.charAt(i);
+                    i++;
+                    setTimeout(type, speed);
+                }
+            }
+            type();
+        }
+
+        function displayResult(result) {
             history.push(result);
             drawRoadmap();
 
-            let resultString = result.winner;
-            if (result.pairs.length > 0) resultString += ` + ${result.pairs.join(' + ')}`;
-            document.getElementById('result-text').textContent = resultString;
+            const resultTextEl = document.getElementById('result-text');
+            typeWriter(resultTextEl, result.winner.toUpperCase());
 
-            const isHighCertainty = (scanType === 'titan' || scanType === 'fusion' || oneTimeTitanScan);
-            const confidence = isHighCertainty ? 99 : Math.floor(Math.random() * (95 - 80 + 1)) + 80;
+            const confidence = (activeCore === 'titan' || activeCore === 'fusion') 
+                ? (Math.random() * (99 - 95) + 95).toFixed(2)
+                : (Math.random() * (92 - 85) + 85).toFixed(2);
+            
             const confidenceScoreEl = document.getElementById('confidence-score');
-            confidenceScoreEl.textContent = `A.I. TIN CẬY: ${confidence}%`;
+            confidenceScoreEl.textContent = `ĐỘ TIN CẬY: ${confidence}%`;
             confidenceScoreEl.style.opacity = 1;
 
             const probs = result.probabilities;
@@ -622,70 +787,9 @@
         
         document.querySelectorAll('.core-button').forEach(button => {
             button.addEventListener('click', (e) => {
-                const coreName = e.target.dataset.core;
-
-                if (coreName === 'fusion') {
-                    fusionMode.active = !fusionMode.active;
-                    if (fusionMode.active) {
-                        setActiveCore('fusion');
-                        button.classList.add('active');
-                    } else {
-                        setActiveCore('yian'); // Revert to default
-                        button.classList.remove('active');
-                    }
-                    return;
-                }
-
-                if (fusionMode.active) {
-                    const selectionIndex = fusionMode.selections.indexOf(coreName);
-                    if (selectionIndex > -1) {
-                        fusionMode.selections.splice(selectionIndex, 1);
-                        e.target.classList.remove('fusion-selected');
-                    } else {
-                        if (fusionMode.selections.length < 2) {
-                            fusionMode.selections.push(coreName);
-                            e.target.classList.add('fusion-selected');
-                        }
-                    }
-                    if (fusionMode.selections.length === 2) {
-                        addLogMessage(`Fusion cores selected: ${fusionMode.selections.join(' & ')}. Ready to scan.`, 'analysis');
-                    }
-                } else {
-                    if (coreName === 'titan' && !oneTimeTitanScan) {
-                        titanConfirmModal.style.display = 'flex';
-                    } else {
-                        setActiveCore(coreName);
-                    }
-                }
+                const coreName = e.currentTarget.dataset.core;
+                setActiveCore(coreName);
             });
-        });
-
-        document.getElementById('titan-confirm-btn').addEventListener('click', () => {
-            setActiveCore('titan');
-            titanConfirmModal.style.display = 'none';
-        });
-        document.getElementById('titan-cancel-btn').addEventListener('click', () => { titanConfirmModal.style.display = 'none'; });
-        
-        document.getElementById('titan-all-in-confirm-btn').addEventListener('click', () => {
-            setActiveCore('titan');
-            oneTimeTitanScan = true;
-            titanAllInModal.style.display = 'none';
-            addLogMessage('Lõi Titan được kích hoạt cho lần quét cuối cùng!', 'warn');
-        });
-        document.getElementById('titan-all-in-cancel-btn').addEventListener('click', () => { titanAllInModal.style.display = 'none'; });
-
-        document.getElementById('data-center-btn').addEventListener('click', () => {
-            updateDataCenter();
-            dataCenterModal.style.display = 'flex';
-        });
-        
-        allModals.forEach(modal => {
-            const closeBtn = modal.querySelector('.modal-close-btn');
-            if (closeBtn) {
-                closeBtn.addEventListener('click', () => {
-                    modal.style.display = 'none';
-                });
-            }
         });
 
         // --- INITIALIZATION ---
@@ -699,54 +803,81 @@
                     document.getElementById('startup-intro').style.display = 'none';
                     loginOverlay.style.display = 'flex';
                 }, 1000);
-            }, 6500);
+            }, 6000); // Shortened intro time
         });
 
-        // --- Background and Holographic Functions ---
-        async function setupCamera() { try { const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } }); document.getElementById('camera-stream').srcObject = stream; } catch (err) { console.error("Camera access denied:", err); document.getElementById('camera-view').innerHTML = `<p style="color:var(--error-color); padding: 10px;">LỖI TRUY CẬP CAMERA</p>`; } }
-        function initHolographicScanner() { const container = document.getElementById('holo-container'); if (!container || container.querySelector('canvas')) return; let scene = new THREE.Scene(); let camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000); camera.position.z = 4; let renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true }); renderer.setSize(container.clientWidth, container.clientHeight); renderer.setPixelRatio(window.devicePixelRatio); container.appendChild(renderer.domElement); const sphereGeom = new THREE.IcosahedronGeometry(1.2, 1); const sphereMat = new THREE.MeshStandardMaterial({ color: '#00e5ff', metalness: 0.6, roughness: 0.1, emissive: '#00e5ff', emissiveIntensity: 0.4, transparent: true, opacity: 0.6 }); let holoSphere = new THREE.Mesh(sphereGeom, sphereMat); scene.add(holoSphere); const wireframeGeom = new THREE.IcosahedronGeometry(1.21, 1); const wireframeMat = new THREE.MeshBasicMaterial({ color: '#00e5ff', wireframe: true, transparent: true, opacity: 0.2 }); holoSphere.add(new THREE.Mesh(wireframeGeom, wireframeMat)); const light = new THREE.DirectionalLight(0xffffff, 1.5); light.position.set(5, 5, 5); scene.add(light); scene.add(new THREE.AmbientLight(0xffffff, 0.3)); let isDragging = false, previousMousePosition = { x: 0, y: 0 }; container.addEventListener('mousedown', e => { isDragging = true; }); container.addEventListener('mouseup', e => { isDragging = false; }); container.addEventListener('mouseleave', e => { isDragging = false; }); container.addEventListener('mousemove', e => { if (!isDragging) return; const deltaMove = { x: e.offsetX - previousMousePosition.x, y: e.offsetY - previousMousePosition.y }; holoSphere.rotation.y += deltaMove.x * 0.01; holoSphere.rotation.x += deltaMove.y * 0.01; previousMousePosition = { x: e.offsetX, y: e.offsetY }; }); const clock = new THREE.Clock(); function animate() { requestAnimationFrame(animate); const elapsedTime = clock.getElapsedTime(); if (!isDragging) { holoSphere.rotation.y += 0.005; holoSphere.rotation.x += 0.002; } if(isScanning) { holoSphere.rotation.y += 0.05; holoSphere.material.emissiveIntensity = Math.sin(elapsedTime * 15) * 0.5 + 0.8; } else { holoSphere.material.emissiveIntensity = 0.4; } renderer.render(scene, camera); } animate(); }
+        // --- 3D & VISUALS ---
+        async function setupCamera() { try { const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } }); document.getElementById('camera-stream').srcObject = stream; } catch (err) { console.error("Camera access denied:", err); addLogMessage("Lỗi truy cập camera", "error"); } }
         
-        // --- NEW: Environmental Factors & Random Events ---
-        const ENVIRONMENTAL_LOGS = [ { type: 'info', text: 'Calibrating quantum sensors...' }, { type: 'info', text: 'Syncing with temporal data stream...' }, { type: 'warn', text: 'Probability matrix fluctuating...' }, { type: 'info', text: 'Environmental noise levels nominal.' }, { type: 'info', text: 'Core temperature stable at 3.14 kelvin.' }, { type: 'warn', text: 'Tachyon particle interference detected.' }, { type: 'analysis', text: 'Ghi nhận 3 thiết bị không dây trong phạm vi.'}, { type: 'warn', text: 'Nhiễu tín hiệu điện từ. Đang hiệu chỉnh...'}, { type: 'info', text: 'Môi trường ánh sáng tối ưu.'}, { type: 'info', text: 'Awaiting user input...' } ];
-        const RANDOM_EVENTS = [
-            { name: "Nhiễu Loạn Từ Trường", description: "Chi phí năng lượng cho 2 lần quét tiếp theo tăng 20%.", duration: 2, effect: { costModifier: 1.2 } },
-            { name: "Dòng Dữ Liệu Thuận Lợi", description: "Độ chính xác của lõi YIAN và ORACLE tăng trong 3 lần quét.", duration: 3, effect: { accuracy: 0.5 } }, // smaller variation is better
-            { name: "Nguồn Năng Lượng Phụ", description: "Phát hiện nguồn năng lượng dư thừa. +15 Năng lượng.", duration: 0, effect: { energyBonus: 15 } },
-            { name: "Lõi Quá Tải", description: "Lõi ORACLE cần được làm mát. Không khả dụng trong 2 lần quét.", duration: 2, effect: { disableCore: 'oracle' } }
-        ];
+        function initHolographicScanner() {
+            const container = document.getElementById('holo-container');
+            if (!container || container.querySelector('canvas')) return;
+            let scene = new THREE.Scene();
+            let camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
+            camera.position.z = 4;
+            let renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            container.appendChild(renderer.domElement);
 
-        function triggerRandomEvent() {
-            const event = RANDOM_EVENTS[Math.floor(Math.random() * RANDOM_EVENTS.length)];
-            activeEvent = event;
-            eventTurnsLeft = event.duration;
+            const group = new THREE.Group();
+            scene.add(group);
 
-            document.getElementById('event-title').textContent = `SỰ KIỆN: ${event.name}`;
-            document.getElementById('event-description').textContent = event.description;
-            randomEventModal.style.display = 'flex';
+            const sphereGeom = new THREE.IcosahedronGeometry(1.2, 1);
+            const sphereMat = new THREE.MeshStandardMaterial({ color: '#00e5ff', metalness: 0.6, roughness: 0.1, emissive: '#00e5ff', emissiveIntensity: 0.4, transparent: true, opacity: 0.6 });
+            let holoSphere = new THREE.Mesh(sphereGeom, sphereMat);
+            group.add(holoSphere);
 
-            addLogMessage(`Sự kiện kích hoạt: ${event.name}`, 'warn');
+            const wireframeGeom = new THREE.IcosahedronGeometry(1.21, 1);
+            const wireframeMat = new THREE.MeshBasicMaterial({ color: '#00e5ff', wireframe: true, transparent: true, opacity: 0.2 });
+            group.add(new THREE.Mesh(wireframeGeom, wireframeMat));
+            
+            const light = new THREE.DirectionalLight(0xffffff, 1.5);
+            light.position.set(5, 5, 5);
+            scene.add(light);
+            scene.add(new THREE.AmbientLight(0xffffff, 0.3));
 
-            if (event.effect.energyBonus) {
-                userEnergy = Math.min(100, userEnergy + event.effect.energyBonus);
-                updateEnergyBar();
-            }
-            if (event.effect.disableCore) {
-                document.querySelector(`.core-button[data-core="${event.effect.disableCore}"]`).disabled = true;
-                if (activeCore === event.effect.disableCore) {
-                    setActiveCore('yian');
+            let isDragging = false, previousMousePosition = { x: 0, y: 0 };
+            container.addEventListener('mousedown', e => { isDragging = true; });
+            container.addEventListener('mouseup', e => { isDragging = false; });
+            container.addEventListener('mouseleave', e => { isDragging = false; });
+            container.addEventListener('mousemove', e => {
+                if (!isDragging) return;
+                const deltaMove = { x: e.offsetX - previousMousePosition.x, y: e.offsetY - previousMousePosition.y };
+                group.rotation.y += deltaMove.x * 0.01;
+                group.rotation.x += deltaMove.y * 0.01;
+                previousMousePosition = { x: e.offsetX, y: e.offsetY };
+            });
+
+            const clock = new THREE.Clock();
+            function animate() {
+                requestAnimationFrame(animate);
+                const elapsedTime = clock.getElapsedTime();
+                if (!isDragging) {
+                    group.rotation.y += 0.005;
+                    group.rotation.x += 0.002;
                 }
+                if(isScanning) {
+                    group.rotation.y += 0.05;
+                    holoSphere.material.emissiveIntensity = Math.sin(elapsedTime * 15) * 0.5 + 0.8;
+                } else {
+                    holoSphere.material.emissiveIntensity = 0.4;
+                }
+                renderer.render(scene, camera);
             }
+            animate();
         }
+        
+        const ENVIRONMENTAL_LOGS = [ { type: 'info', text: 'Hiệu chỉnh cảm biến lượng tử...' }, { type: 'info', text: 'Đồng bộ hóa luồng dữ liệu thời gian...' }, { type: 'warn', text: 'Ma trận xác suất dao động...' }, { type: 'info', text: 'Nhiễu môi trường ở mức danh nghĩa.' }, { type: 'analysis', text: 'Ghi nhận 3 thiết bị không dây trong phạm vi.'}, { type: 'warn', text: 'Nhiễu tín hiệu điện từ. Đang hiệu chỉnh...'}, { type: 'info', text: 'Chờ lệnh từ người dùng...' } ];
 
         function initAnalysisTerminal() { 
-            addLogMessage('YIAN A.I CORE online. System nominal.', 'success'); 
-            logInterval = setInterval(() => { 
+            addLogMessage('YIAN A.I CORE v19 online. Hệ thống ổn định.', 'success'); 
+            setInterval(() => { 
                 const randomMsg = ENVIRONMENTAL_LOGS[Math.floor(Math.random() * ENVIRONMENTAL_LOGS.length)]; 
                 addLogMessage(randomMsg.text, randomMsg.type); 
-            }, 4000); 
+            }, 5000); 
         }
 
-        // --- NEW: 3D LOGIN SCREEN ---
         function initLoginAnimation() {
             const canvas = document.getElementById('login-canvas');
             const scene = new THREE.Scene();
@@ -755,148 +886,91 @@
             const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
             renderer.setSize(window.innerWidth, window.innerHeight);
 
-            const geometry = new THREE.BoxGeometry(1.5, 1.5, 1.5);
-            const material = new THREE.MeshBasicMaterial({ color: 0x00e5ff, wireframe: true });
-            const cube = new THREE.Mesh(geometry, material);
-            scene.add(cube);
-
-            const particlesGeom = new THREE.BufferGeometry();
-            const particlesCnt = 5000;
-            const posArray = new Float32Array(particlesCnt * 3);
-            for(let i = 0; i < particlesCnt * 3; i++) {
-                posArray[i] = (Math.random() - 0.5) * 10;
-            }
-            particlesGeom.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
-            const particlesMat = new THREE.PointsMaterial({ size: 0.005, color: 0x00e5ff });
-            const particles = new THREE.Points(particlesGeom, particlesMat);
-            scene.add(particles);
-
-            let mouseX = 0, mouseY = 0;
-            document.addEventListener('mousemove', (event) => {
-                mouseX = (event.clientX / window.innerWidth) * 2 - 1;
-                mouseY = -(event.clientY / window.innerHeight) * 2 + 1;
+            const unfoldingCubeGroup = new THREE.Group();
+            const faceSize = 1.5;
+            const planeGeom = new THREE.PlaneGeometry(faceSize, faceSize);
+            const wireframeMat = new THREE.MeshBasicMaterial({ color: 0x00e5ff, wireframe: true });
+            
+            const positions = [ { p: [0, faceSize / 2, 0], r: [-Math.PI / 2, 0, 0] }, { p: [0, -faceSize / 2, 0], r: [Math.PI / 2, 0, 0] }, { p: [faceSize / 2, 0, 0], r: [0, -Math.PI / 2, 0] }, { p: [-faceSize / 2, 0, 0], r: [0, Math.PI / 2, 0] }, { p: [0, 0, faceSize / 2], r: [0, 0, 0] }, { p: [0, 0, -faceSize / 2], r: [0, Math.PI, 0] } ];
+            const faces = positions.map(pos => {
+                const plane = new THREE.Mesh(planeGeom, wireframeMat);
+                plane.position.set(pos.p[0], pos.p[1], pos.p[2]);
+                plane.rotation.set(pos.r[0], pos.r[1], pos.r[2]);
+                unfoldingCubeGroup.add(plane);
+                return plane;
             });
+            scene.add(unfoldingCubeGroup);
 
+            const coreGeom = new THREE.IcosahedronGeometry(0.5, 0);
+            const coreMat = new THREE.MeshBasicMaterial({ color: 0x00e5ff, transparent: true, opacity: 0.8, blending: THREE.AdditiveBlending });
+            const core = new THREE.Mesh(coreGeom, coreMat);
+            scene.add(core);
+
+            const clock = new THREE.Clock();
             function animate() {
                 requestAnimationFrame(animate);
-                cube.rotation.x += 0.005;
-                cube.rotation.y += 0.005;
-                particles.rotation.y += 0.0005;
-                
-                // Make camera follow mouse
-                camera.position.x += (mouseX * 2 - camera.position.x) * 0.05;
-                camera.position.y += (mouseY * 2 - camera.position.y) * 0.05;
-                camera.lookAt(scene.position);
-
+                const elapsedTime = clock.getElapsedTime();
+                unfoldingCubeGroup.rotation.x += 0.003;
+                unfoldingCubeGroup.rotation.y += 0.003;
+                core.rotation.y += 0.005;
+                const unfoldFactor = (Math.sin(elapsedTime * 0.5) + 1) / 2 * 0.8;
+                faces[0].position.y = faceSize / 2 + unfoldFactor; faces[1].position.y = -faceSize / 2 - unfoldFactor; faces[2].position.x = faceSize / 2 + unfoldFactor; faces[3].position.x = -faceSize / 2 - unfoldFactor; faces[4].position.z = faceSize / 2 + unfoldFactor; faces[5].position.z = -faceSize / 2 - unfoldFactor;
                 renderer.render(scene, camera);
             }
             animate();
-            window.addEventListener('resize', () => {
-                camera.aspect = window.innerWidth / window.innerHeight;
-                camera.updateProjectionMatrix();
-                renderer.setSize(window.innerWidth, window.innerHeight);
-            });
+            window.addEventListener('resize', () => { camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight); });
         }
         
-        // --- NEW: ADVANCED INTRO ANIMATION ---
         function initIntroAnimation() {
             const introCanvas = document.getElementById('intro-canvas');
             const scene = new THREE.Scene();
             const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-            camera.position.z = 80;
-
+            camera.position.z = 100;
             const renderer = new THREE.WebGLRenderer({ canvas: introCanvas, antialias: true, alpha: true });
             renderer.setSize(window.innerWidth, window.innerHeight);
             renderer.setPixelRatio(window.devicePixelRatio);
 
-            const cardSuits = ['CON', 'CÁI'];
-            const cardRanks = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
             const cardGroup = new THREE.Group();
-
-            const cardWidth = 10;
-            const cardHeight = cardWidth * 1.4;
-            const cardGeometry = new THREE.PlaneGeometry(cardWidth, cardHeight, 1, 1);
-
-            for (let i = 0; i < 52; i++) {
-                const canvas = document.createElement('canvas');
-                canvas.width = 256;
-                canvas.height = 358;
-                const context = canvas.getContext('2d');
-
-                context.fillStyle = 'rgba(10, 25, 40, 0.7)';
-                context.strokeStyle = '#00e5ff';
-                context.lineWidth = 8;
-                context.beginPath();
-                context.moveTo(10, 0); context.lineTo(246, 0); context.quadraticCurveTo(256, 0, 256, 10);
-                context.lineTo(256, 348); context.quadraticCurveTo(256, 358, 246, 358);
-                context.lineTo(10, 358); context.quadraticCurveTo(0, 358, 0, 348);
-                context.lineTo(0, 10); context.quadraticCurveTo(0, 0, 10, 0);
-                context.closePath();
-                context.fill();
-                context.stroke();
-
-                context.fillStyle = '#00e5ff';
-                context.font = 'bold 40px Rajdhani';
-                context.textAlign = 'center';
-                context.textBaseline = 'middle';
-                const rank = cardRanks[i % 13];
-                const suit = cardSuits[Math.floor(i / 26)];
-                context.fillText(rank, canvas.width / 2, canvas.height / 2 - 20);
-                context.font = '30px Rajdhani';
-                context.fillText(suit, canvas.width / 2, canvas.height / 2 + 20);
-
-                const texture = new THREE.CanvasTexture(canvas);
-                const material = new THREE.MeshBasicMaterial({
-                    map: texture,
-                    side: THREE.DoubleSide,
-                    transparent: true,
-                    opacity: 0.85,
-                    blending: THREE.AdditiveBlending
-                });
-
-                const card = new THREE.Mesh(cardGeometry, material);
-
-                const angle = i * 0.2;
-                const radius = 15 + i * 0.1;
+            const cards = [];
+            const cardWidth = 12, cardHeight = cardWidth * 1.4;
+            
+            for (let i = 0; i < 70; i++) {
+                const material = new THREE.MeshBasicMaterial({ color: 0x00e5ff, wireframe: true, transparent: true, opacity: 0.5 });
+                const geometry = new THREE.PlaneGeometry(cardWidth, cardHeight);
+                const card = new THREE.Mesh(geometry, material);
+                const angle = i * 0.35;
+                const radius = 25 + Math.random() * 10;
                 card.position.x = Math.cos(angle) * radius;
                 card.position.y = Math.sin(angle) * radius;
-                card.position.z = -i * 5;
-                card.rotation.z = angle + Math.PI / 2;
+                card.position.z = -i * 10;
+                card.rotation.z = Math.random() * Math.PI * 2;
                 cardGroup.add(card);
+                cards.push(card);
             }
             scene.add(cardGroup);
-
-            const particleGeom = new THREE.BufferGeometry();
-            const particleCount = 15000;
-            const posArray = new Float32Array(particleCount * 3);
-            for (let i = 0; i < particleCount * 3; i++) {
-                posArray[i] = (Math.random() - 0.5) * 300;
-            }
-            particleGeom.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
-            const particleMat = new THREE.PointsMaterial({
-                size: 0.1, color: 0x00e5ff,
-                transparent: true, opacity: 0.7,
-                blending: THREE.AdditiveBlending
-            });
-            const particles = new THREE.Points(particleGeom, particleMat);
-            scene.add(particles);
 
             const clock = new THREE.Clock();
             function animate() {
                 const elapsedTime = clock.getElapsedTime();
-                if (elapsedTime > 6.0) { return; }
+                if (elapsedTime > 5.5) return;
                 requestAnimationFrame(animate);
-                cardGroup.position.z += 1.5;
-                particles.rotation.z = elapsedTime * 0.05;
+                cardGroup.position.z += 1.2;
+                const pulseZ = cardGroup.position.z - 80;
+                const pulseWidth = 50;
+                cards.forEach(card => {
+                    const cardWorldZ = card.position.z + cardGroup.position.z;
+                    const distance = Math.abs(cardWorldZ - pulseZ);
+                    if (distance < pulseWidth) {
+                        const intensity = 1.0 - (distance / pulseWidth);
+                        card.material.opacity = 0.3 + intensity * 0.7;
+                    } else {
+                        card.material.opacity = 0.3;
+                    }
+                });
                 renderer.render(scene, camera);
             }
             animate();
-
-            window.addEventListener('resize', () => {
-                camera.aspect = window.innerWidth / window.innerHeight;
-                camera.updateProjectionMatrix();
-                renderer.setSize(window.innerWidth, window.innerHeight);
-            });
+            window.addEventListener('resize', () => { camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight); });
         }
     </script>
 </body>
