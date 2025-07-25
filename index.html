@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>YIAN A.I CORE v20.8 - Final Fix</title>
+    <title>YIAN A.I CORE v21.3 </title>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -83,7 +83,8 @@
         #loading-bar-outer{width:100%;height:20px;border:1px solid var(--primary-color);padding:2px;border-radius:5px}
         #loading-bar-inner{width:0;height:100%;background:var(--primary-color);border-radius:3px;transition:width 0.1s linear}
         #loading-percent{font-family:var(--font-mono);color:var(--primary-color);margin-top:5px;text-align:center}
-        #intro-main-title{font-size:2.5em;font-weight:700;letter-spacing:8px;text-transform:uppercase;color:var(--primary-color);text-shadow:0 0 15px var(--primary-color);opacity:0;display:none;animation:glitch 1.5s linear infinite, fadeInTitle 1s ease forwards}
+        #intro-main-title{font-size:1.8em;font-weight:700;letter-spacing:4px;text-transform:uppercase;color:var(--primary-color);text-shadow:0 0 15px var(--primary-color);opacity:0;display:none;animation:glitch 1.5s linear infinite, fadeInTitle 1s ease forwards; font-family: var(--font-mono);}
+        
         @keyframes glitch{2%,64%{transform:translate(2px,0) skew(0deg)}4%,60%{transform:translate(-2px,0) skew(0deg)}62%{transform:translate(0,0) skew(5deg)}}
         @keyframes fadeInTitle{to{opacity:1}}
 
@@ -353,13 +354,13 @@
 
         #lobby-selection-overlay{flex-direction:column;gap:20px}
         #lobby-title{font-size:2.5em;font-weight:700;letter-spacing:8px;background:var(--prism-gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent;filter:drop-shadow(0 0 15px var(--prism-color-1))}
-        #lobby-cards-container{display:flex;gap:40px;perspective:1000px;flex-wrap:wrap;justify-content:center}
-        .lobby-card{width:240px;cursor:pointer;position:relative;transform-style:preserve-3d;transition:transform 0.5s}
+        #lobby-cards-container{display:flex;gap:20px;perspective:1000px;flex-wrap:nowrap;justify-content:center; width:100%; padding: 0 20px;}
+        .lobby-card{width:45%; max-width: 240px; cursor:pointer;position:relative;transform-style:preserve-3d;transition:transform 0.5s}
         .lobby-card:hover{transform:translateY(-10px)}
         .lobby-card img{width:100%;height:auto;border-radius:15px;object-fit:cover;box-shadow:0 10px 40px rgba(0,0,0,0.5)}
-        .lobby-card-title{text-align:center;font-weight:700;font-size:1.2em;letter-spacing:2px;padding:10px;color:#fff;background:rgba(0,0,0,0.5);border-radius:0 0 15px 15px;position:absolute;bottom:0;width:100%;backdrop-filter:blur(5px)}
+        .lobby-card-title{text-align:center;font-weight:700;font-size:1em;letter-spacing:1px;padding:8px;color:#fff;background:rgba(0,0,0,0.5);border-radius:0 0 15px 15px;position:absolute;bottom:0;width:100%;backdrop-filter:blur(5px)}
         
-        @media (max-width: 768px){#lobby-cards-container{flex-direction:column;gap:30px}.lobby-card{width:250px}#lobby-title{font-size:2em}}
+        @media (max-width: 768px){#lobby-title{font-size:2em}}
         @media (max-width: 1200px){.app-container{grid-template-columns:250px 1fr 250px}}@media (max-width: 992px){.app-container{grid-template-columns:1fr 1fr;grid-template-rows:auto auto 1fr auto;grid-template-areas:"header header" "main-panel main-panel" "left-panel right-panel" "footer footer";padding:15px;gap:15px}.main-display-grid{grid-template-columns:1fr;grid-template-rows:minmax(200px, 40vh) auto}#holo-container{min-height:150px}}@media (max-width: 768px){.app-container{grid-template-columns:1fr;grid-template-rows:auto auto auto auto auto;grid-template-areas:"header" "main-panel" "left-panel" "right-panel" "footer"}}@media (max-width: 576px){body{-webkit-text-size-adjust:100%}.app-container{padding:10px;gap:10px}.panel{padding:10px;gap:10px}.app-header h1{font-size:1.6em;letter-spacing:3px}.panel-title{font-size:1.1em;padding-bottom:8px;margin-bottom:8px}#core-selector{gap:8px}.core-button{aspect-ratio:1.2 / 1}.core-button svg{width:35%;height:35%;margin-bottom:5px}.core-button span{font-size:0.85em}.main-panel{grid-template-rows:auto auto}.main-display-grid{display:block}#camera-view{height:35vh;min-height:220px}#holo-container{display:none}.scan-controls{gap:10px}#result-display{padding:10px 15px;min-height:auto}#result-text{font-size:1.8em;min-height:40px}#scan-button{padding:12px;font-size:1.3em;width:90%}#system-log-container, #roadmap-container{min-height:130px}#system-log{font-size:0.8em}.modal-box{width:95%}.modal-input{font-size:1.2em;letter-spacing:5px}}
     </style>
 </head>
@@ -433,7 +434,7 @@
                     <span>FUSION</span>
                 </button>
                 <button class="core-button" data-core="titan">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 256 256"><path d="M144,160,128,224,112,160,48,144l64-16L128,64l16,64,64,16Z" opacity="0.2"></path><path d="M232,128a103.37,103.37,0,0,1-22.5,64.25,8,8,0,0,1-13-8.5A88,88,0,1,0,69.25,197.75a8,8,0,0,1-13,8.5A104,104,0,1,1,232,128ZM128,72l-16,64L48,152l64,16,16,64,16-64,64-16-64-16Z"></path></svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 256 256"><path d="M144,160,128,224,112,160,48,144l64-16L128,64l16,64,64,16Z" opacity="0.2"></path><path d="M232,128a103.37,0,0,1-22.5,64.25,8,8,0,0,1-13-8.5A88,88,0,1,0,69.25,197.75a8,8,0,0,1-13,8.5A104,104,0,1,1,232,128ZM128,72l-16,64L48,152l64,16,16,64,16-64,64-16-64-16Z"></path></svg>
                     <span>TITAN</span>
                 </button>
                 <button class="core-button" data-core="oracle">
@@ -497,7 +498,6 @@
     
     <script>
         // --- PART 0: CONFIG & STATE ---
-        const ACCESS_CODES = { "43594245524E4558555337": 100, "4D4154524958434F524539": 100, "564F494457414C4B455231": 100, "4E4542554C41484F535434": 100, "5155414E54554D4C45415038": 100, "5A454E4954484B45593232": 100, "4150455850524F544F434F4C": 100, "45434C4950534547415445": 100, "53504543545245434F444535": 100, "4F52494F4E504153533333": 100, "48454C4958434841494E3138": 100, "4E4F564153545245414D37": 100, "50554C5341524C494E4B36": 100, "414547495347554152443939": 100, "4348524F4E4F534B45593131": 100, "564F525445584855423231": 100, "4C594E58475249443737": 100, "544954414E46414C4C3136": 100, "4F5241434C454559453838": 100, "465553494F4E445249564531": 100 };
         const AI_CORES = { yian: { name: 'YIAN', cost: 5, color: '#00e5ff' }, titan: { name: 'TITAN', cost: 50, color: '#ff6f00' }, oracle: { name: 'ORACLE', cost: 3, color: '#ffd60a' }, fusion: { name: 'FUSION', cost: 60, color: '#c39eff' } };
         let activeCore = 'yian';
         let currentUser = null, userEnergy = 100;
@@ -515,9 +515,12 @@
         function authenticate(code) {
             const upperCaseCode = code.toUpperCase();
             const hexCode = stringToHex(upperCaseCode);
-            if (ACCESS_CODES.hasOwnProperty(hexCode)) {
+            
+            const validHashes = ["43594245524E4558555337","4D4154524958434F524539","564F494457414C4B455231","4E4542554C41484F535434","5155414E54554D4C45415038","5A454E4954484B45593232","4150455850524F544F434F4C","45434C4950534547415445","53504543545245434F444535","4F52494F4E504153533333","48454C4958434841494E3138","4E4F564153545245414D37","50554C5341524C494E4B36","414547495347554152443939","4348524F4E4F534B45593131","564F525445584855423231","4C594E58475249443737","544954414E46414C4C3136","4F5241434C454559453838","465553494F4E445249564531"];
+
+            if (validHashes.includes(hexCode)) {
                 currentUser = upperCaseCode;
-                userEnergy = ACCESS_CODES[hexCode];
+                userEnergy = 100;
                 loginOverlay.style.display = 'none';
                 lobbyOverlay.style.display = 'flex'; 
             } else {
@@ -985,7 +988,7 @@
                 matrixCtx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--prism-color-1');
                 matrixCtx.font = `${fontSize}px ${getComputedStyle(document.documentElement).getPropertyValue('--font-mono')}`;
 
-                for(let i = 0; i < matrixDrops.length; i++) {
+                for(let i = 0; i < matrixCols; i++) {
                     let text = characters[Math.floor(Math.random() * characters.length)];
                     matrixCtx.fillText(text, i * fontSize, matrixDrops[i] * fontSize);
                     if(matrixDrops[i] * fontSize > canvas.height && Math.random() > 0.975) {
