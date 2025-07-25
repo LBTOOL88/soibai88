@@ -1,575 +1,56 @@
 <!DOCTYPE html>
-<html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>YIAN A.I CORE v19.4 - Mobile Optimized</title>
-    
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;700&family=Share+Tech+Mono&display=swap');
-        
-        :root {
-            --bg-color: #010409;
-            --primary-color: #00e5ff; /* Default YIAN color */
-            --glow-color: rgba(0, 229, 255, 0.75);
-            --secondary-color: #c1d7e0;
-            --container-bg: rgba(10, 25, 40, 0.7);
-            --border-color: rgba(0, 229, 255, 0.3);
-            --error-color: #ff3b3b;
-            --success-color: #34ffb9;
-            --warning-color: #ffd60a;
-            --info-color: #64b5f6;
-            --font-primary: 'Rajdhani', sans-serif;
-            --font-mono: 'Share Tech Mono', monospace;
-
-            /* Core-specific colors */
-            --yian-color: #00e5ff;
-            --yian-glow: rgba(0, 229, 255, 0.75);
-            --titan-color: #ff6f00;
-            --titan-glow: rgba(255, 111, 0, 0.75);
-            --oracle-color: #ffd60a;
-            --oracle-glow: rgba(255, 214, 10, 0.75);
-            --fusion-color: #c39eff;
-            --fusion-glow: rgba(195, 158, 255, 0.75);
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        body {
-            background-color: var(--bg-color);
-            color: var(--secondary-color);
-            font-family: var(--font-primary);
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
-            min-height: 100vh;
-            overflow-x: hidden;
-            overflow-y: auto;
-            background-image: 
-                linear-gradient(var(--border-color) 1px, transparent 1px),
-                linear-gradient(to right, var(--border-color) 1px, var(--bg-color) 1px);
-            background-size: 40px 40px;
-            animation: bg-pan 10s linear infinite;
-        }
-
-        @keyframes bg-pan {
-            from { background-position: 0 0; }
-            to { background-position: -40px -40px; }
-        }
-
-        #startup-intro, .modal-overlay {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            z-index: 2000;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        
-        #startup-intro { background-color: #000; }
-        .modal-overlay { background: rgba(0, 0, 0, 0.9); display: none; }
-        
-        #intro-canvas, #login-canvas {
-            position: absolute; top: 0; left: 0;
-            width: 100%; height: 100%;
-        }
-
-        #intro-text-container {
-            z-index: 2001; text-align: center;
-            color: var(--secondary-color); pointer-events: none;
-        }
-        #intro-text {
-            font-size: 1.5em; letter-spacing: 4px; opacity: 0;
-            animation: fadeInText 3s 1s ease-in-out forwards;
-            text-shadow: 0 0 15px var(--glow-color);
-        }
-        @keyframes fadeInText {
-            0% { opacity: 0; transform: translateY(20px); }
-            50% { opacity: 1; transform: translateY(0); }
-            100% { opacity: 1; }
-        }
-
-        /* Main App Container */
-        .app-container {
-            display: none; /* Hidden by default */
-            width: 100%;
-            min-height: 100vh;
-            max-width: 1400px;
-            padding: 20px;
-            gap: 20px;
-            grid-template-columns: 300px 1fr 300px;
-            grid-template-rows: auto 1fr;
-            grid-template-areas:
-                "header header header"
-                "left-panel main-panel right-panel";
-            opacity: 0;
-            animation: fadeInApp 1s 0.5s forwards;
-        }
-
-        @keyframes fadeInApp {
-            to { opacity: 1; }
-        }
-
-        .panel {
-            background: var(--container-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 15px;
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            padding: 20px;
-            box-shadow: 0 0 25px rgba(0, 0, 0, 0.5), inset 0 0 15px rgba(0, 229, 255, 0.1);
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            overflow: hidden;
-        }
-        
-        .panel-title {
-            font-size: 1.2em;
-            font-weight: 700;
-            color: var(--primary-color);
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            margin-bottom: 10px;
-            text-shadow: 0 0 8px var(--glow-color);
-            border-bottom: 1px solid var(--border-color);
-            padding-bottom: 10px;
-        }
-
-        /* Header */
-        .app-header {
-            grid-area: header;
-            text-align: center;
-            padding: 0;
-            border: none;
-            background: none;
-            box-shadow: none;
-            backdrop-filter: none;
-        }
-        .app-header h1 {
-            font-size: 2.5em;
-            font-weight: 700;
-            color: var(--primary-color);
-            letter-spacing: 8px;
-            text-shadow: 0 0 15px var(--glow-color);
-        }
-
-        /* Left Panel */
-        .left-panel { grid-area: left-panel; }
-        
-        #core-selector {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-        }
-        .core-button {
-            aspect-ratio: 1 / 1;
-            background: rgba(0,0,0,0.3);
-            border: 1px solid var(--border-color);
-            color: var(--secondary-color);
-            cursor: pointer;
-            border-radius: 10px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            transition: all 0.3s ease;
-        }
-        .core-button svg {
-            width: 40%;
-            height: 40%;
-            margin-bottom: 8px;
-            transition: all 0.3s ease;
-        }
-        .core-button span {
-            font-weight: 700;
-            font-size: 1em;
-            letter-spacing: 1px;
-        }
-
-        .core-button:hover {
-             transform: translateY(-5px);
-        }
-        .core-button.active svg {
-            transform: scale(1.1);
-        }
-        .core-button[data-core="yian"]:hover, .core-button[data-core="yian"].active {
-            border-color: var(--yian-color);
-            color: var(--yian-color);
-            box-shadow: 0 0 15px var(--yian-glow);
-            background: rgba(0, 229, 255, 0.1);
-        }
-        .core-button[data-core="titan"]:hover, .core-button[data-core="titan"].active {
-            border-color: var(--titan-color);
-            color: var(--titan-color);
-            box-shadow: 0 0 15px var(--titan-glow);
-            background: rgba(255, 111, 0, 0.1);
-        }
-        .core-button[data-core="oracle"]:hover, .core-button[data-core="oracle"].active {
-            border-color: var(--oracle-color);
-            color: var(--oracle-color);
-            box-shadow: 0 0 15px var(--oracle-glow);
-            background: rgba(255, 214, 10, 0.1);
-        }
-        .core-button[data-core="fusion"]:hover, .core-button[data-core="fusion"].active {
-            border-color: var(--fusion-color);
-            color: var(--fusion-color);
-            box-shadow: 0 0 15px var(--fusion-glow);
-            background: rgba(195, 158, 255, 0.1);
-        }
-
-
-        #energy-display {
-            text-align: center;
-        }
-        #energy-bar-outer {
-            width: 100%; height: 15px;
-            background: rgba(0,0,0,0.4);
-            border: 1px solid var(--border-color);
-            border-radius: 8px; padding: 2px;
-        }
-        #energy-bar-inner {
-            width: 100%; height: 100%;
-            background: linear-gradient(90deg, var(--success-color), var(--primary-color));
-            border-radius: 5px;
-            transition: width 0.5s, background 0.5s;
-            box-shadow: 0 0 8px var(--success-color);
-        }
-        #energy-bar-inner.low {
-            background: linear-gradient(90deg, var(--warning-color), var(--error-color));
-            box-shadow: 0 0 8px var(--warning-color);
-        }
-        #energy-percent-text {
-            font-family: var(--font-mono); font-size: 1.2em;
-            margin-top: 8px; color: var(--primary-color);
-        }
-
-        /* Main Panel */
-        .main-panel {
-            grid-area: main-panel;
-            display: grid;
-            grid-template-rows: 1fr auto;
-            gap: 20px;
-        }
-        .main-display-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            height: 100%;
-        }
-        #camera-view {
-            position: relative;
-            background: #000;
-            border: 1px dashed var(--border-color);
-            border-radius: 10px;
-            overflow: hidden;
-            min-height: 200px;
-        }
-        #camera-stream { width: 100%; height: 100%; object-fit: cover; }
-        #holo-container {
-            border: 1px dashed var(--border-color);
-            border-radius: 10px;
-            cursor: grab;
-            min-height: 200px;
-        }
-        
-        .scan-controls {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 15px;
-        }
-        #scan-button {
-            width: 80%;
-            max-width: 400px;
-            padding: 15px;
-            font-size: 1.5em;
-            font-weight: 700;
-            letter-spacing: 3px;
-            color: #000;
-            background: var(--primary-color);
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-shadow: 0 1px 5px rgba(0,0,0,0.4);
-        }
-        #scan-button:hover:not(:disabled) {
-            box-shadow: 0 0 35px var(--glow-color);
-            transform: scale(1.05);
-        }
-        #scan-button:disabled {
-            background: #555;
-            color: #999;
-            cursor: not-allowed;
-        }
-        
-        #result-display {
-            background: rgba(0,0,0,0.3);
-            border: 1px solid var(--border-color);
-            border-radius: 10px;
-            padding: 20px;
-            text-align: center;
-            min-height: 150px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-        }
-        #result-text {
-            font-family: var(--font-mono);
-            font-size: 2.5em;
-            font-weight: 700;
-            letter-spacing: 2px;
-            color: var(--success-color);
-            text-shadow: 0 0 10px var(--success-color);
-            min-height: 50px;
-        }
-        #confidence-score {
-            font-family: var(--font-mono);
-            font-size: 1em;
-            color: var(--primary-color);
-            opacity: 0;
-            transition: opacity 0.5s;
-        }
-        #probability-panel {
-            display: none;
-            width: 100%;
-            margin-top: 15px;
-            animation: fadeInPanel 0.5s ease-out;
-        }
-        @keyframes fadeInPanel { from { opacity: 0; } to { opacity: 1; } }
-        .prob-item { display: flex; justify-content: space-between; align-items: center; font-size: 0.9em; margin-bottom: 6px; font-family: var(--font-mono); }
-        .prob-bar-outer { flex-grow: 1; height: 10px; background: rgba(0,0,0,0.4); margin: 0 10px; border-radius: 5px; border: 1px solid var(--border-color); }
-        .prob-bar-inner { height: 100%; background: var(--primary-color); border-radius: 3px; transition: width 0.5s; }
-        .prob-value { font-weight: 700; color: var(--primary-color); }
-
-        /* Right Panel */
-        .right-panel { grid-area: right-panel; }
-        
-        #system-log-container { flex-grow: 1; display: flex; flex-direction: column; min-height: 150px;}
-        #system-log {
-            flex-grow: 1;
-            background: rgba(0,0,0,0.5);
-            border-radius: 5px;
-            padding: 10px;
-            font-family: var(--font-mono);
-            font-size: 0.85em;
-            overflow-y: scroll;
-            border: 1px solid var(--border-color);
-        }
-        #system-log::-webkit-scrollbar { width: 5px; }
-        #system-log::-webkit-scrollbar-track { background: transparent; }
-        #system-log::-webkit-scrollbar-thumb { background: var(--primary-color); border-radius: 5px; }
-        .log-line { white-space: nowrap; animation: fadeInLog 0.3s; }
-        @keyframes fadeInLog { from { opacity: 0; } to { opacity: 1; } }
-        .log-line.info { color: var(--info-color); } .log-line.warn { color: var(--warning-color); } .log-line.error { color: var(--error-color); } .log-line.success { color: var(--success-color); } .log-line.analysis { color: #c39eff; }
-
-        #roadmap-container { flex-grow: 1; display: flex; flex-direction: column; min-height: 150px; }
-        #roadmap-canvas {
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.5);
-            border-radius: 5px;
-            border: 1px solid var(--border-color);
-        }
-
-        /* Modals */
-        .modal-box {
-            background: var(--container-bg);
-            backdrop-filter: blur(10px);
-            border: 1px solid var(--primary-color);
-            border-radius: 15px;
-            padding: 30px;
-            box-shadow: 0 0 60px var(--glow-color);
-            text-align: center;
-            width: 90%;
-            max-width: 450px;
-            animation: fadeInContainer 0.5s;
-            z-index: 10;
-            position: relative;
-        }
-        .modal-box h2 {
-            color: var(--primary-color);
-            margin-top: 0;
-            font-weight: 700;
-            letter-spacing: 2px;
-            font-size: 1.5em;
-        }
-        .modal-input {
-            width: 100%;
-            background: rgba(0,0,0,0.5);
-            border: 1px solid var(--primary-color);
-            color: var(--primary-color);
-            padding: 12px;
-            margin: 20px 0;
-            border-radius: 5px;
-            font-size: 1.6em;
-            text-align: center;
-            letter-spacing: 8px;
-            font-family: var(--font-mono);
-        }
-        .modal-button {
-            width: 100%; padding: 12px; background: var(--primary-color);
-            color: #000; border: none; border-radius: 5px; font-size: 1.2em;
-            font-weight: 700; cursor: pointer; transition: all 0.3s; letter-spacing: 1px;
-        }
-        #login-error { color: var(--error-color); min-height: 20px; font-weight: 700; }
-        
-        /* [MODIFIED] Responsive Design */
-        @media (max-width: 1200px) {
-            .app-container {
-                grid-template-columns: 250px 1fr 250px;
-            }
-        }
-
-        @media (max-width: 992px) {
-            .app-container {
-                grid-template-columns: 1fr 1fr;
-                grid-template-rows: auto auto 1fr;
-                grid-template-areas:
-                    "header header"
-                    "main-panel main-panel"
-                    "left-panel right-panel";
-                padding: 15px;
-                gap: 15px;
-            }
-            .main-display-grid {
-                grid-template-columns: 1fr;
-                grid-template-rows: minmax(200px, 40vh) auto;
-            }
-            #holo-container {
-                min-height: 150px;
-            }
-        }
-        
-        @media (max-width: 768px) {
-            .app-container {
-                grid-template-columns: 1fr;
-                grid-template-rows: auto auto auto auto;
-                grid-template-areas:
-                    "header"
-                    "main-panel"
-                    "left-panel"
-                    "right-panel";
-            }
-        }
-
-        @media (max-width: 576px) {
-            body {
-                -webkit-text-size-adjust: 100%;
-            }
-            .app-container {
-                padding: 10px;
-                gap: 10px;
-            }
-            .panel {
-                padding: 10px;
-                gap: 10px;
-            }
-            .app-header h1 {
-                font-size: 1.6em;
-                letter-spacing: 3px;
-            }
-            .panel-title {
-                font-size: 1.1em;
-                padding-bottom: 8px;
-                margin-bottom: 8px;
-            }
-            #core-selector {
-                gap: 8px;
-            }
-            .core-button {
-                aspect-ratio: 1.2 / 1;
-            }
-            .core-button svg {
-                width: 35%;
-                height: 35%;
-                margin-bottom: 5px;
-            }
-            .core-button span {
-                font-size: 0.85em;
-            }
-            .main-panel {
-                grid-template-rows: auto auto;
-            }
-            .main-display-grid {
-                display: block;
-            }
-            #camera-view {
-                height: 35vh;
-                min-height: 220px;
-            }
-            #holo-container {
-                display: none;
-            }
-            .scan-controls {
-                gap: 10px;
-            }
-            #result-display {
-                padding: 10px 15px;
-                min-height: auto;
-            }
-            #result-text {
-                font-size: 1.8em;
-                min-height: 40px;
-            }
-            #scan-button {
-                padding: 12px;
-                font-size: 1.3em;
-                width: 90%;
-            }
-            #system-log-container, #roadmap-container {
-                min-height: 130px;
-            }
-            #system-log {
-                font-size: 0.8em;
-            }
-            .modal-box {
-                width: 95%;
-            }
-            .modal-input {
-                font-size: 1.2em;
-                letter-spacing: 5px;
-            }
-        }
-
-    </style>
+<html lang="vi"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>YIAN A.I CORE v21.0 - Secure Edition</title><script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script><script src="https://cdn.jsdelivr.net/npm/chart.js"></script><style>@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;700&family=Share+Tech+Mono&display=swap');:root{--bg-color:#010409;--primary-color:#00e5ff;--glow-color:rgba(0, 229, 255, 0.75);--secondary-color:#c1d7e0;--container-bg:rgba(10, 25, 40, 0.65);--border-color:rgba(0, 229, 255, 0.3);--error-color:#ff3b3b;--success-color:#34ffb9;--warning-color:#ffd60a;--info-color:#64b5f6;--font-primary:'Rajdhani', sans-serif;--font-mono:'Share Tech Mono', monospace;--prism-gradient:linear-gradient(45deg, #00e5ff, #ff00e0, #ffd60a);--prism-color-1:#00e5ff;--prism-color-2:#ff00e0;--prism-color-3:#ffd60a}*{box-sizing:border-box;margin:0;padding:0}body{background-color:var(--bg-color);color:var(--secondary-color);font-family:var(--font-primary);display:flex;justify-content:center;align-items:flex-start;min-height:100vh;overflow:hidden}#background-canvas{position:fixed;top:0;left:0;width:100%;height:100%;z-index:-1}#startup-intro, .modal-overlay{position:fixed;top:0;left:0;width:100%;height:100%;z-index:2000;display:flex;justify-content:center;align-items:center;flex-direction:column}#startup-intro{background-color:#000}.modal-overlay{background:rgba(0, 0, 0, 0.9);display:none}#intro-canvas, #login-canvas{position:absolute;top:0;left:0;width:100%;height:100%}#intro-text-container{z-index:2001;text-align:center;color:var(--secondary-color);pointer-events:none;opacity:0;animation:fadeInText 2s 5.5s ease-in-out forwards}#intro-text{font-size:1.5em;letter-spacing:4px;text-shadow:0 0 15px var(--glow-color)}@keyframes fadeInText{to{opacity:1}}.app-container{display:none;width:100%;min-height:100vh;max-width:1400px;padding:20px;gap:20px;grid-template-columns:300px 1fr 300px;grid-template-rows:auto 1fr auto;grid-template-areas:"header header header" "left-panel main-panel right-panel" "footer footer footer";opacity:0;animation:fadeInApp 1s 0.5s forwards}@keyframes fadeInApp{to{opacity:1}}.panel{background:var(--container-bg);border-radius:15px;backdrop-filter:blur(16px) saturate(180%);-webkit-backdrop-filter:blur(16px) saturate(180%);padding:20px;box-shadow:0 8px 32px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.1);display:flex;flex-direction:column;gap:15px;overflow:hidden;position:relative;border:2px solid transparent}.panel::before{content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:conic-gradient(from var(--angle), var(--prism-color-2), var(--prism-color-3), var(--prism-color-1), var(--prism-color-2));animation:rotate 6s linear infinite}.panel > *{position:relative;z-index:1}.panel::after{content:'';position:absolute;inset:2px;background:#0a1928;border-radius:14px}@property --angle{syntax:'<angle>';initial-value:0deg;inherits:false}@keyframes rotate{to{--angle:360deg}}.panel-title{font-size:1.2em;font-weight:700;color:var(--secondary-color);letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;text-shadow:0 0 4px rgba(0,0,0,0.5);border-bottom:1px solid var(--border-color);padding-bottom:10px}.app-header{grid-area:header;text-align:center;padding:0;border:none;background:none;box-shadow:none;backdrop-filter:none}.app-header h1{font-size:2.5em;font-weight:700;letter-spacing:8px;background:var(--prism-gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent;filter:drop-shadow(0 0 15px var(--prism-color-1))}.left-panel{grid-area:left-panel}#core-selector{display:grid;grid-template-columns:1fr 1fr;gap:15px}.core-button{aspect-ratio:1 / 1;background:linear-gradient(145deg, #0f2335, #0c1d2c);border:1px solid rgba(255,255,255,0.1);color:var(--secondary-color);cursor:pointer;border-radius:10px;display:flex;flex-direction:column;justify-content:center;align-items:center;transition:all 0.2s ease-out;position:relative;box-shadow:0 4px 10px rgba(0,0,0,0.5), inset 0 1px 1px rgba(255,255,255,0.1)}.core-button:hover{transform:translateY(-5px);box-shadow:0 8px 20px rgba(0,0,0,0.6), inset 0 1px 1px rgba(255,255,255,0.1)}.core-button.active{transform:translateY(-2px);filter:brightness(1.2)}.core-button.active svg{filter:drop-shadow(0 0 8px var(--glow-color))}.core-button[data-core="yian"].active{color:var(--yian-color)}.core-button[data-core="titan"].active{color:var(--titan-color)}.core-button[data-core="oracle"].active{color:var(--oracle-color)}.core-button[data-core="fusion"].active{color:var(--fusion-color)}.core-button svg{width:40%;height:40%;margin-bottom:8px;transition:all 0.3s ease}.core-button span{font-weight:700;font-size:1em;letter-spacing:1px}#energy-display{text-align:center}#energy-bar-outer{width:100%;height:15px;background:rgba(0,0,0,0.4);border:1px solid var(--border-color);border-radius:8px;padding:2px}#energy-bar-inner{width:100%;height:100%;background:var(--prism-gradient);border-radius:5px;transition:width 0.5s, background 0.5s;box-shadow:0 0 8px var(--success-color)}#energy-bar-inner.low{background:linear-gradient(90deg, var(--warning-color), var(--error-color));box-shadow:0 0 8px var(--warning-color)}#energy-percent-text{font-family:var(--font-mono);font-size:1.2em;margin-top:8px;color:var(--secondary-color)}.main-panel{grid-area:main-panel}.main-display-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;height:100%}#camera-view{position:relative;background:#000;border:1px dashed var(--border-color);border-radius:10px;overflow:hidden;min-height:200px}#camera-stream{width:100%;height:100%;object-fit:cover}#holo-container{border:1px dashed var(--border-color);border-radius:10px;cursor:grab;min-height:200px}#scan-animation-overlay{position:absolute;top:0;left:0;width:100%;height:100%;background:transparent;display:none;justify-content:center;align-items:center;z-index:12}#scan-animation-canvas{width:100%;height:100%}#camera-scanline{position:absolute;top:0;left:0;width:100%;height:100%;z-index:2;pointer-events:none;background:linear-gradient(rgba(10, 25, 40, 0) 50%, rgba(10, 25, 40, 0.1) 50%), linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);background-size:100% 4px, 4px 100%;animation:scanlines 20s linear infinite}@keyframes scanlines{from{background-position:0 0}to{background-position:0 100%}}#matrix-overlay{position:absolute;top:0;left:0;width:100%;height:100%;display:none;z-index:11;opacity:0.6;pointer-events:none}#matrix-canvas{display:block;width:100%;height:100%}.scan-controls{display:flex;flex-direction:column;align-items:center;gap:15px}#scan-button{width:80%;max-width:400px;padding:15px;font-size:1.5em;font-weight:700;letter-spacing:3px;color:#fff;background:var(--prism-gradient);background-size:200% 200%;border:none;border-radius:10px;cursor:pointer;transition:all 0.3s ease;text-shadow:0 1px 5px rgba(0,0,0,0.4);position:relative;box-shadow:0 5px 15px rgba(0,0,0,0.4), inset 0 1px 2px rgba(255,255,255,0.2);animation:gradient-pan 5s ease infinite}@keyframes gradient-pan{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}#scan-button:hover:not(:disabled){transform:scale(1.05) translateY(-3px);box-shadow:0 8px 25px rgba(0, 229, 255, 0.4), inset 0 1px 2px rgba(255,255,255,0.2)}#scan-button:disabled{background:#555;color:#999;cursor:not-allowed;animation:none}#result-display{background:rgba(0,0,0,0.3);border:1px solid var(--border-color);border-radius:10px;padding:15px;text-align:center;min-height:150px;display:flex;flex-direction:column;justify-content:center;align-items:center}#result-text{font-family:var(--font-mono);font-size:2.2em;font-weight:700;letter-spacing:2px;color:var(--success-color);text-shadow:0 0 10px var(--success-color);min-height:40px}#secondary-result-text{font-family:var(--font-primary);font-size:1.2em;font-weight:500;color:var(--warning-color);text-shadow:0 0 8px var(--warning-color);margin-top:5px;min-height:20px}#confidence-score{font-family:var(--font-mono);font-size:1em;color:var(--secondary-color);opacity:0;transition:opacity 0.5s;margin-top:10px}#probability-panel{display:none;width:100%;margin-top:15px;animation:fadeInPanel 0.5s ease-out}@keyframes fadeInPanel{from{opacity:0}to{opacity:1}}.prob-item{display:flex;justify-content:space-between;align-items:center;font-size:0.9em;margin-bottom:6px;font-family:var(--font-mono)}.prob-bar-outer{flex-grow:1;height:10px;background:rgba(0,0,0,0.4);margin:0 10px;border-radius:5px;border:1px solid var(--border-color)}.prob-bar-inner{height:100%;background:var(--primary-color);border-radius:3px;transition:width 0.5s}.prob-value{font-weight:700;color:var(--primary-color)}.right-panel{grid-area:right-panel}#system-log-container{flex-grow:1;display:flex;flex-direction:column;min-height:150px}#system-log{flex-grow:1;background:rgba(0,0,0,0.5);border-radius:5px;padding:10px;font-family:var(--font-mono);font-size:0.85em;overflow-y:scroll;border:1px solid var(--border-color)}#system-log::-webkit-scrollbar{width:5px}#system-log::-webkit-scrollbar-track{background:transparent}#system-log::-webkit-scrollbar-thumb{background:var(--primary-color);border-radius:5px}.log-line{white-space:nowrap;animation:fadeInLog 0.3s}@keyframes fadeInLog{from{opacity:0}to{opacity:1}}.log-line.info{color:var(--info-color)}.log-line.warn{color:var(--warning-color)}.log-line.error{color:var(--error-color)}.log-line.success{color:var(--success-color)}.log-line.analysis{color:#c39eff}#roadmap-container{flex-grow:1;display:flex;flex-direction:column;min-height:150px}#roadmap-canvas{width:100%;height:100%;background:rgba(0,0,0,0.5);border-radius:5px;border:1px solid var(--border-color)}.modal-box{background:var(--container-bg);backdrop-filter:blur(10px);border:1px solid var(--primary-color);border-radius:15px;padding:30px;box-shadow:0 0 60px var(--glow-color);text-align:center;width:90%;max-width:450px;animation:fadeInContainer 0.5s;z-index:10;position:relative}.modal-box h2{color:var(--primary-color);margin-top:0;font-weight:700;letter-spacing:2px;font-size:1.5em}.modal-input{width:100%;background:rgba(0,0,0,0.5);border:1px solid var(--primary-color);color:var(--primary-color);padding:12px;margin:15px 0;border-radius:5px;font-size:1.6em;text-align:center;letter-spacing:8px;font-family:var(--font-mono)}.modal-button{width:100%;padding:12px;background:var(--primary-color);color:#000;border:none;border-radius:5px;font-size:1.2em;font-weight:700;cursor:pointer;transition:all 0.3s;letter-spacing:1px}#login-error{color:var(--error-color);min-height:20px;font-weight:700}#login-notification{color:var(--warning-color);background:rgba(255, 214, 10, 0.1);border:1px solid var(--warning-color);border-radius:8px;padding:10px;margin-bottom:15px;font-size:0.9em;font-weight:500}#show-instructions-button{background:none;border:none;color:var(--secondary-color);text-decoration:underline;cursor:pointer;margin-top:15px;font-size:0.9em}#instructions-modal .modal-box{text-align:left}#instructions-modal h2{text-align:center;margin-bottom:20px}#instructions-modal p{margin-bottom:10px;line-height:1.6}#instructions-modal .close-button{position:absolute;top:15px;right:15px;background:none;border:none;color:white;font-size:1.5em;cursor:pointer}.styled-link{color:var(--warning-color);text-decoration:none;font-weight:bold;border-bottom:1px dashed var(--warning-color);transition:all 0.2s ease-in-out}.styled-link:hover{color:#fff;background-color:var(--warning-color)}.app-footer{grid-area:footer;text-align:center;padding:15px 0 5px 0;color:rgba(193, 215, 224, 0.4);font-family:var(--font-mono);font-size:0.9em}#lobby-selection-overlay{flex-direction:column;gap:20px}#lobby-title{font-size:2.5em;font-weight:700;letter-spacing:8px;background:var(--prism-gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent;filter:drop-shadow(0 0 15px var(--prism-color-1))}#lobby-cards-container{display:flex;gap:40px;perspective:1000px}.lobby-card{width:300px;height:420px;cursor:pointer;position:relative;transform-style:preserve-3d;transition:transform 0.5s}.lobby-card:hover{transform:translateY(-10px) rotateY(5deg)}.lobby-card img{width:100%;height:100%;border-radius:15px;object-fit:cover;box-shadow:0 10px 40px rgba(0,0,0,0.5)}@media (max-width: 768px){#lobby-cards-container{flex-direction:column;gap:30px}.lobby-card{width:250px;height:350px}#lobby-title{font-size:2em}}@media (max-width: 1200px){.app-container{grid-template-columns:250px 1fr 250px}}@media (max-width: 992px){.app-container{grid-template-columns:1fr 1fr;grid-template-rows:auto auto 1fr auto;grid-template-areas:"header header" "main-panel main-panel" "left-panel right-panel" "footer footer";padding:15px;gap:15px}.main-display-grid{grid-template-columns:1fr;grid-template-rows:minmax(200px, 40vh) auto}#holo-container{min-height:150px}}@media (max-width: 768px){.app-container{grid-template-columns:1fr;grid-template-rows:auto auto auto auto auto;grid-template-areas:"header" "main-panel" "left-panel" "right-panel" "footer"}}@media (max-width: 576px){body{-webkit-text-size-adjust:100%}.app-container{padding:10px;gap:10px}.panel{padding:10px;gap:10px}.app-header h1{font-size:1.6em;letter-spacing:3px}.panel-title{font-size:1.1em;padding-bottom:8px;margin-bottom:8px}#core-selector{gap:8px}.core-button{aspect-ratio:1.2 / 1}.core-button svg{width:35%;height:35%;margin-bottom:5px}.core-button span{font-size:0.85em}.main-panel{grid-template-rows:auto auto}.main-display-grid{display:block}#camera-view{height:35vh;min-height:220px}#holo-container{display:none}.scan-controls{gap:10px}#result-display{padding:10px 15px;min-height:auto}#result-text{font-size:1.8em;min-height:40px}#scan-button{padding:12px;font-size:1.3em;width:90%}#system-log-container, #roadmap-container{min-height:130px}#system-log{font-size:0.8em}.modal-box{width:95%}.modal-input{font-size:1.2em;letter-spacing:5px}}</style>
 </head>
 <body>
-    <!-- Startup Intro -->
+    <canvas id="background-canvas"></canvas>
+    
     <div id="startup-intro">
         <canvas id="intro-canvas"></canvas>
         <div id="intro-text-container">
-            <p id="intro-text">INITIATING YIAN A.I CORE v19...</p>
+            <p id="intro-text">YIAN A.I. CORE v20.5 ONLINE</p>
         </div>
     </div>
 
-    <!-- Login Overlay -->
     <div id="login-overlay" class="modal-overlay">
         <canvas id="login-canvas"></canvas>
         <div class="modal-box">
             <h2>YÊU CẦU XÁC THỰC</h2>
             <p id="login-error"></p>
+            <div id="login-notification">
+                TOOL CHỈ HOẠT ĐỘNG VỚI CÁC TÀI KHOẢN ĐĂNG KÍ TẠI <a href="http://www.f168.codes" target="_blank" class="styled-link">WWW.F168.CODES</a>
+            </div>
             <input type="text" id="access-code-input" class="modal-input" placeholder="ACCESS CODE">
             <button id="login-button" class="modal-button">TRUY CẬP HỆ THỐNG</button>
+            <button id="show-instructions-button">Xem Hướng Dẫn</button>
         </div>
     </div>
     
-    <!-- Main Application -->
+    <div id="instructions-modal" class="modal-overlay">
+         <div class="modal-box">
+            <button class="close-button" id="close-instructions-button">&times;</button>
+            <h2>HƯỚNG DẪN SỬ DỤNG</h2>
+            <p><strong>BƯỚC 1:</strong> ĐĂNG KÍ TÀI KHOẢN TẠI: <a href="http://www.f168.codes" target="_blank" class="styled-link">WWW.F168.CODES</a></p>
+            <p><strong>BƯỚC 2:</strong> LÊN ĐIỂM CHƠI VÀ CHỤP BILL LẠI GỬI VÀO TELE @LONGBAOF168</p>
+        </div>
+    </div>
+
+    <div id="lobby-selection-overlay" class="modal-overlay">
+        <h2 id="lobby-title">CHỌN SẢNH CHƠI</h2>
+        <div id="lobby-cards-container">
+            <div class="lobby-card" id="select-sexy">
+                <img src="https://i.ibb.co/ycn4gVqJ/ae.png" alt="Sảnh Sexy">
+            </div>
+            <div class="lobby-card" id="select-dg">
+                <img src="https://i.ibb.co/3m34bdRm/dg.png" alt="Sảnh DG">
+            </div>
+        </div>
+    </div>
+
     <div class="app-container">
         <header class="app-header">
             <h1>YIAN A.I. COMMAND CENTER</h1>
         </header>
 
-        <!-- Left Panel -->
         <div class="left-panel panel">
             <h2 class="panel-title">LÕI PHÂN TÍCH</h2>
             <div id="core-selector">
@@ -599,17 +80,24 @@
             </div>
         </div>
 
-        <!-- Main Panel -->
         <div class="main-panel panel">
             <div class="main-display-grid">
                 <div id="camera-view">
                     <video id="camera-stream" autoplay playsinline muted></video>
+                    <div id="camera-scanline"></div>
+                    <div id="scan-animation-overlay">
+                        <canvas id="scan-animation-canvas"></canvas>
+                    </div>
+                    <div id="matrix-overlay">
+                        <canvas id="matrix-canvas"></canvas>
+                    </div>
                 </div>
                 <div id="holo-container"></div>
             </div>
             <div class="scan-controls">
                 <div id="result-display">
                     <h2 id="result-text">-- CHỜ LỆNH --</h2>
+                    <h3 id="secondary-result-text"></h3>
                     <p id="confidence-score">ĐỘ TIN CẬY: --%</p>
                     <div id="probability-panel">
                         <div class="prob-item"> <span class="prob-label">CÁI</span> <div class="prob-bar-outer"><div id="prob-bar-banker" class="prob-bar-inner"></div></div> <span id="prob-value-banker" class="prob-value">--.--%</span> </div>
@@ -621,7 +109,6 @@
             </div>
         </div>
 
-        <!-- Right Panel -->
         <div class="right-panel panel">
             <div id="system-log-container">
                 <h3 class="panel-title">NHẬT KÝ HỆ THỐNG</h3>
@@ -632,59 +119,37 @@
                 <canvas id="roadmap-canvas"></canvas>
             </div>
         </div>
+        
+        <footer class="app-footer">
+            © Bản quyền thuộc về Long Bảo
+        </footer>
     </div>
     
     <script>
         // --- PART 0: CONFIG & STATE ---
-        // [MODIFIED] HEX-encoded access codes
-        const ACCESS_CODES = {
-            "43594245524E4558555337": 100, "4D4154524958434F524539": 100,
-            "564F494457414C4B455231": 100, "4E4542554C41484F535434": 100,
-            "5155414E54554D4C45415038": 100, "5A454E4954484B45593232": 100,
-            "4150455850524F544F434F4C": 100, "45434C4950534547415445": 100,
-            "53504543545245434F444535": 100, "4F52494F4E504153533333": 100,
-            "48454C4958434841494E3138": 100, "4E4F564153545245414D37": 100,
-            "50554C5341524C494E4B36": 100, "414547495347554152443939": 100,
-            "4348524F4E4F534B45593131": 100, "564F525445584855423231": 100,
-            "4C594E58475249443737": 100, "544954414E46414C4C3136": 100,
-            "4F5241434C454559453838": 100, "465553494F4E445249564531": 100
-        };
-        const AI_CORES = {
-            yian: { name: 'YIAN', cost: 5, color: '#00e5ff' },
-            titan: { name: 'TITAN', cost: 50, color: '#ff6f00' },
-            oracle: { name: 'ORACLE', cost: 3, color: '#ffd60a' },
-            fusion: { name: 'FUSION', cost: 60, color: '#c39eff' }
-        };
+        const ACCESS_CODES = { "43594245524E4558555337": 100, "4D4154524958434F524539": 100, "564F494457414C4B455231": 100, "4E4542554C41484F535434": 100, "5155414E54554D4C45415038": 100, "5A454E4954484B45593232": 100, "4150455850524F544F434F4C": 100, "45434C4950534547415445": 100, "53504543545245434F444535": 100, "4F52494F4E504153533333": 100, "48454C4958434841494E3138": 100, "4E4F564153545245414D37": 100, "50554C5341524C494E4B36": 100, "414547495347554152443939": 100, "4348524F4E4F534B45593131": 100, "564F525445584855423231": 100, "4C594E58475249443737": 100, "544954414E46414C4C3136": 100, "4F5241434C454559453838": 100, "465553494F4E445249564531": 100 };
+        const AI_CORES = { yian: { name: 'YIAN', cost: 5, color: '#00e5ff' }, titan: { name: 'TITAN', cost: 50, color: '#ff6f00' }, oracle: { name: 'ORACLE', cost: 3, color: '#ffd60a' }, fusion: { name: 'FUSION', cost: 60, color: '#c39eff' } };
         let activeCore = 'yian';
         let currentUser = null, userEnergy = 100;
         let isScanning = false;
         let history = [];
+        let baccaratAnimation = { renderer: null, scene: null, camera: null, reqId: null, cards: [], cardMeshes: [], cardTextures: {}, scannerLaser: null };
+        let matrixAnimationId = null; 
         
-        // --- DOM ELEMENTS ---
         const loginOverlay = document.getElementById('login-overlay');
         const mainContainer = document.querySelector('.app-container');
+        const lobbyOverlay = document.getElementById('lobby-selection-overlay');
 
-        // --- AUTH & INITIALIZATION ---
-        // [NEW] Helper function to convert string to HEX
-        function stringToHex(str) {
-            let result = '';
-            for (let i = 0; i < str.length; i++) {
-                result += str.charCodeAt(i).toString(16);
-            }
-            return result.toUpperCase();
-        }
-
-        // [MODIFIED] Authenticate using HEX code
+        function stringToHex(str) { let result = ''; for (let i = 0; i < str.length; i++) { result += str.charCodeAt(i).toString(16); } return result.toUpperCase(); }
+        
         function authenticate(code) {
             const upperCaseCode = code.toUpperCase();
-            const hexCode = stringToHex(upperCaseCode); // Convert user input to HEX
-
-            if (ACCESS_CODES.hasOwnProperty(hexCode)) { // Check the HEX code
-                currentUser = upperCaseCode; // We can still store the original code for display/logging
+            const hexCode = stringToHex(upperCaseCode);
+            if (ACCESS_CODES.hasOwnProperty(hexCode)) {
+                currentUser = upperCaseCode;
                 userEnergy = ACCESS_CODES[hexCode];
                 loginOverlay.style.display = 'none';
-                mainContainer.style.display = 'grid';
-                initializeApp();
+                lobbyOverlay.style.display = 'flex'; 
             } else {
                 const errorEl = document.getElementById('login-error');
                 errorEl.textContent = "MÃ TRUY CẬP KHÔNG HỢP LỆ";
@@ -692,16 +157,26 @@
             }
         }
 
+        function selectLobby(lobbyName) {
+            lobbyOverlay.style.display = 'none';
+            mainContainer.style.display = 'grid';
+            document.body.style.overflow = 'auto';
+            initializeApp();
+            addLogMessage(`Đã vào sảnh ${lobbyName}.`, 'info');
+        }
+
         function initializeApp() {
             setActiveCore('yian');
             updateEnergyBar();
             setupCamera();
             initHolographicScanner();
+            initScanAnimation();
             initAnalysisTerminal();
             drawRoadmap();
+            initBackgroundGrid(); 
+            initMatrixAnimation(); 
         }
         
-        // --- UI & DISPLAY FUNCTIONS ---
         function updateEnergyBar() {
             const energyBarInner = document.getElementById('energy-bar-inner');
             const energyPercentText = document.getElementById('energy-percent-text');
@@ -722,14 +197,11 @@
 
         function setActiveCore(coreName) {
             activeCore = coreName;
-            // Update the main theme color variable for other elements
             const newColor = AI_CORES[coreName].color;
+            const newGlow = AI_CORES[coreName].glow || `${newColor}bf`;
             document.documentElement.style.setProperty('--primary-color', newColor);
-            document.documentElement.style.setProperty('--glow-color', AI_CORES[coreName].glow || `${newColor}bf`); // bf is 75% opacity hex
-
-            document.querySelectorAll('.core-button').forEach(btn => {
-                btn.classList.toggle('active', btn.dataset.core === coreName);
-            });
+            document.documentElement.style.setProperty('--glow-color', newGlow);
+            document.querySelectorAll('.core-button').forEach(btn => btn.classList.toggle('active', btn.dataset.core === coreName));
             addLogMessage(`Lõi hoạt động chuyển thành ${AI_CORES[coreName].name}.`, 'warn');
         }
 
@@ -739,93 +211,68 @@
             const parent = canvas.parentElement;
             canvas.width = parent.clientWidth;
             canvas.height = parent.clientHeight;
-            
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             const beadSize = 12;
             const padding = 10;
             const cols = Math.floor((canvas.width - padding * 2) / beadSize);
             const rows = Math.floor((canvas.height - padding * 2) / beadSize);
-
             ctx.strokeStyle = 'rgba(0, 229, 255, 0.1)';
-            for(let i = 0; i <= cols; i++) {
-                ctx.beginPath();
-                ctx.moveTo(padding + i * beadSize, padding);
-                ctx.lineTo(padding + i * beadSize, canvas.height - padding);
-                ctx.stroke();
-            }
-            for(let i = 0; i <= rows; i++) {
-                ctx.beginPath();
-                ctx.moveTo(padding, padding + i * beadSize);
-                ctx.lineTo(canvas.width - padding, padding + i * beadSize);
-                ctx.stroke();
-            }
-
+            for(let i = 0; i <= cols; i++) { ctx.beginPath(); ctx.moveTo(padding + i * beadSize, padding); ctx.lineTo(padding + i * beadSize, canvas.height - padding); ctx.stroke(); }
+            for(let i = 0; i <= rows; i++) { ctx.beginPath(); ctx.moveTo(padding, padding + i * beadSize); ctx.lineTo(canvas.width - padding, padding + i * beadSize); ctx.stroke(); }
             let currentX = 0, currentY = 0;
             history.slice(-cols * rows).forEach(result => {
                 const centerX = padding + currentX * beadSize + beadSize / 2;
                 const centerY = padding + currentY * beadSize + beadSize / 2;
-                
                 ctx.beginPath();
                 ctx.arc(centerX, centerY, beadSize / 2 - 2, 0, 2 * Math.PI);
-                
                 if (result.winner === 'Nhà cái') ctx.fillStyle = '#ff3b3b';
                 else if (result.winner === 'Tay con') ctx.fillStyle = '#00e5ff';
                 else ctx.fillStyle = '#34ffb9';
-                
                 ctx.fill();
-                
                 currentY++;
                 if (currentY >= rows) { currentY = 0; currentX++; }
             });
         }
 
-        // --- CORE APP LOGIC ---
         function startScanProcess() {
             if (isScanning) return;
-            
             const currentCost = AI_CORES[activeCore].cost;
-            if (userEnergy < currentCost) {
-                addLogMessage("NĂNG LƯỢNG HỆ THỐNG QUÁ THẤP", 'error');
-                return;
-            }
-            
+            if (userEnergy < currentCost) { addLogMessage("NĂNG LƯỢNG HỆ THỐNG QUÁ THẤP", 'error'); return; }
             userEnergy -= currentCost;
             updateEnergyBar();
-            
             isScanning = true;
             const scanButton = document.getElementById('scan-button');
             scanButton.disabled = true;
             scanButton.textContent = 'ĐANG PHÂN TÍCH...';
-            
             document.getElementById('probability-panel').style.display = 'none';
+            document.getElementById('result-text').textContent = '_';
+            document.getElementById('secondary-result-text').textContent = '';
+            let finalResult = generateRandomResult();
+            startCardAnimation(finalResult.winner);
+            startMatrixAnimation(); 
             const resultTextEl = document.getElementById('result-text');
-            resultTextEl.textContent = '_';
-            
-            let cyclingInterval = setInterval(() => {
-                resultTextEl.textContent = ['ANALYZING...', 'DECRYPTING...', 'CALCULATING...'][Math.floor(Math.random() * 3)];
-            }, 150);
-            
+            let cyclingInterval = setInterval(() => { resultTextEl.textContent = ['ANALYZING...', 'DECRYPTING...', 'CALCULATING...'][Math.floor(Math.random() * 3)]; }, 150);
             addLogMessage(`Quét bắt đầu với lõi ${AI_CORES[activeCore].name}. Tiêu thụ ${currentCost} năng lượng.`, 'info');
-
             setTimeout(() => {
                 clearInterval(cyclingInterval);
                 isScanning = false;
                 scanButton.disabled = false;
                 scanButton.textContent = 'KHỞI TẠO QUÉT';
-                
-                let finalResult = generateRandomResult();
+                stopCardAnimation();
+                stopMatrixAnimation(); 
                 displayResult(finalResult);
-                addLogMessage(`Kết quả tối ưu: ${finalResult.winner.toUpperCase()}`, 'success');
-            }, 3500);
+                addLogMessage(`Kết quả chính: ${finalResult.winner.toUpperCase()}, Phụ: ${finalResult.secondaryWinner.toUpperCase()}`, 'success');
+            }, 4000); 
         }
         
         function generateRandomResult() {
+            const winner = Math.random() < 0.5 ? "Nhà cái" : "Tay con";
+            const secondaryOptions = ["Hoà", "Long Bảo", "Con Đôi", "Cái Đôi"];
+            const secondaryWinner = secondaryOptions[Math.floor(Math.random() * secondaryOptions.length)];
             let baseBanker = 45.85, basePlayer = 44.62, baseTie = 9.53;
-            let variation = (Math.random() - 0.5) * 2; // YIAN default
-            
-            if (activeCore === 'titan') variation = (Math.random() - 0.5) * 1; // Less random
-            if (activeCore === 'oracle') variation = (Math.random() - 0.5) * 3; // More random
-            
+            let variation = (Math.random() - 0.5) * 2;
+            if (activeCore === 'titan') variation = (Math.random() - 0.5) * 1;
+            if (activeCore === 'oracle') variation = (Math.random() - 0.5) * 3;
             let probBanker = baseBanker + variation;
             let probPlayer = basePlayer - variation;
             let probTie = baseTie + (Math.random() - 0.5) * 0.2;
@@ -833,49 +280,26 @@
             probBanker = (probBanker / total) * 100;
             probPlayer = (probPlayer / total) * 100;
             probTie = (probTie / total) * 100;
-
-            let roll = Math.random() * 100;
-            let winner = '';
-            
-            if (activeCore === 'titan' && Math.random() < 0.95) {
-                winner = probBanker > probPlayer ? 'Nhà cái' : 'Tay con';
-            } else {
-                if (roll < probBanker) winner = "Nhà cái";
-                else if (roll < probBanker + probPlayer) winner = "Tay con";
-                else winner = "Hoà";
-            }
-            
-            return { winner, probabilities: { banker: probBanker, player: probPlayer, tie: probTie } };
+            return { winner, secondaryWinner, probabilities: { banker: probBanker, player: probPlayer, tie: probTie } };
         }
 
         function typeWriter(element, text, speed = 50) {
-            element.textContent = "";
-            let i = 0;
-            function type() {
-                if (i < text.length) {
-                    element.textContent += text.charAt(i);
-                    i++;
-                    setTimeout(type, speed);
-                }
-            }
+            element.textContent = ""; let i = 0;
+            function type() { if (i < text.length) { element.textContent += text.charAt(i); i++; setTimeout(type, speed); } }
             type();
         }
 
         function displayResult(result) {
             history.push(result);
             drawRoadmap();
-
             const resultTextEl = document.getElementById('result-text');
+            const secondaryResultTextEl = document.getElementById('secondary-result-text');
             typeWriter(resultTextEl, result.winner.toUpperCase());
-
-            const confidence = (activeCore === 'titan' || activeCore === 'fusion') 
-                ? (Math.random() * (99 - 95) + 95).toFixed(2)
-                : (Math.random() * (92 - 85) + 85).toFixed(2);
-            
+            secondaryResultTextEl.textContent = `+ ${result.secondaryWinner.toUpperCase()}`;
+            const confidence = (activeCore === 'titan' || activeCore === 'fusion') ? (Math.random() * (99 - 95) + 95).toFixed(2) : (Math.random() * (92 - 85) + 85).toFixed(2);
             const confidenceScoreEl = document.getElementById('confidence-score');
             confidenceScoreEl.textContent = `ĐỘ TIN CẬY: ${confidence}%`;
             confidenceScoreEl.style.opacity = 1;
-
             const probs = result.probabilities;
             document.getElementById('prob-value-banker').textContent = `${probs.banker.toFixed(2)}%`;
             document.getElementById('prob-bar-banker').style.width = `${probs.banker}%`;
@@ -886,19 +310,19 @@
             document.getElementById('probability-panel').style.display = 'block';
         }
 
-        // --- EVENT LISTENERS ---
         document.getElementById('login-button').addEventListener('click', () => authenticate(document.getElementById('access-code-input').value));
         document.getElementById('access-code-input').addEventListener('keyup', (e) => { if (e.key === 'Enter') authenticate(e.target.value); });
         document.getElementById('scan-button').addEventListener('click', startScanProcess);
+        document.querySelectorAll('.core-button').forEach(button => button.addEventListener('click', (e) => setActiveCore(e.currentTarget.dataset.core)));
         
-        document.querySelectorAll('.core-button').forEach(button => {
-            button.addEventListener('click', (e) => {
-                const coreName = e.currentTarget.dataset.core;
-                setActiveCore(coreName);
-            });
-        });
+        const instructionsModal = document.getElementById('instructions-modal');
+        document.getElementById('show-instructions-button').addEventListener('click', () => { instructionsModal.style.display = 'flex'; });
+        document.getElementById('close-instructions-button').addEventListener('click', () => { instructionsModal.style.display = 'none'; });
+        instructionsModal.addEventListener('click', (e) => { if (e.target === instructionsModal) { instructionsModal.style.display = 'none'; } });
 
-        // --- INITIALIZATION ---
+        document.getElementById('select-sexy').addEventListener('click', () => selectLobby('SEXY'));
+        document.getElementById('select-dg').addEventListener('click', () => selectLobby('DG'));
+
         window.addEventListener('load', () => {
             initIntroAnimation();
             initLoginAnimation();
@@ -909,15 +333,13 @@
                     document.getElementById('startup-intro').style.display = 'none';
                     loginOverlay.style.display = 'flex';
                 }, 1000);
-            }, 6000); // Shortened intro time
+            }, 7500); 
         });
 
-        // --- 3D & VISUALS ---
         async function setupCamera() { try { const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } }); document.getElementById('camera-stream').srcObject = stream; } catch (err) { console.error("Camera access denied:", err); addLogMessage("Lỗi truy cập camera", "error"); } }
-        
         function initHolographicScanner() {
             const container = document.getElementById('holo-container');
-            if (!container || container.querySelector('canvas')) return;
+            if (!container || container.querySelector('canvas') || window.innerWidth <= 576) return;
             let scene = new THREE.Scene();
             let camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
             camera.position.z = 4;
@@ -925,104 +347,164 @@
             renderer.setSize(container.clientWidth, container.clientHeight);
             renderer.setPixelRatio(window.devicePixelRatio);
             container.appendChild(renderer.domElement);
-
             const group = new THREE.Group();
             scene.add(group);
-
-            const sphereGeom = new THREE.IcosahedronGeometry(1.2, 1);
+            const sphereGeom = new THREE.IcosahedronGeometry(1.2, 2);
             const sphereMat = new THREE.MeshStandardMaterial({ color: '#00e5ff', metalness: 0.6, roughness: 0.1, emissive: '#00e5ff', emissiveIntensity: 0.4, transparent: true, opacity: 0.6 });
             let holoSphere = new THREE.Mesh(sphereGeom, sphereMat);
             group.add(holoSphere);
-
-            const wireframeGeom = new THREE.IcosahedronGeometry(1.21, 1);
+            const wireframeGeom = new THREE.IcosahedronGeometry(1.21, 2);
             const wireframeMat = new THREE.MeshBasicMaterial({ color: '#00e5ff', wireframe: true, transparent: true, opacity: 0.2 });
             group.add(new THREE.Mesh(wireframeGeom, wireframeMat));
-            
             const light = new THREE.DirectionalLight(0xffffff, 1.5);
             light.position.set(5, 5, 5);
             scene.add(light);
             scene.add(new THREE.AmbientLight(0xffffff, 0.3));
-
             let isDragging = false, previousMousePosition = { x: 0, y: 0 };
             container.addEventListener('mousedown', e => { isDragging = true; });
             container.addEventListener('mouseup', e => { isDragging = false; });
             container.addEventListener('mouseleave', e => { isDragging = false; });
-            container.addEventListener('mousemove', e => {
-                if (!isDragging) return;
-                const deltaMove = { x: e.offsetX - previousMousePosition.x, y: e.offsetY - previousMousePosition.y };
-                group.rotation.y += deltaMove.x * 0.01;
-                group.rotation.x += deltaMove.y * 0.01;
-                previousMousePosition = { x: e.offsetX, y: e.offsetY };
-            });
-
+            container.addEventListener('mousemove', e => { if (!isDragging) return; const deltaMove = { x: e.offsetX - previousMousePosition.x, y: e.offsetY - previousMousePosition.y }; group.rotation.y += deltaMove.x * 0.01; group.rotation.x += deltaMove.y * 0.01; previousMousePosition = { x: e.offsetX, y: e.offsetY }; });
             const clock = new THREE.Clock();
+            function animate() { requestAnimationFrame(animate); const elapsedTime = clock.getElapsedTime(); if (!isDragging) { group.rotation.y += 0.005; group.rotation.x += 0.002; } if(isScanning) { group.rotation.y += 0.05; holoSphere.material.emissiveIntensity = Math.sin(elapsedTime * 15) * 0.5 + 0.8; } else { holoSphere.material.emissiveIntensity = 0.4; } renderer.render(scene, camera); }
+            animate();
+        }
+
+        const BaccaratGame = {
+            deck: [], ranks: ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'], suits: ['♥', '♦', '♣', '♠'],
+            createDeck() { this.deck = []; for (const suit of this.suits) { for (const rank of this.ranks) { this.deck.push({ rank, suit }); } } },
+            shuffleDeck() { for (let i = this.deck.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [this.deck[i], this.deck[j]] = [this.deck[j], this.deck[i]]; } },
+            getCardValue(rank) { if (['10', 'J', 'Q', 'K'].includes(rank)) return 0; if (rank === 'A') return 1; return parseInt(rank); },
+            getHandScore(hand) { return hand.reduce((sum, card) => sum + this.getCardValue(card.rank), 0) % 10; },
+            dealHand() { this.createDeck(); this.shuffleDeck(); const playerHand = [this.deck.pop(), this.deck.pop()]; const bankerHand = [this.deck.pop(), this.deck.pop()]; let playerScore = this.getHandScore(playerHand); let bankerScore = this.getHandScore(bankerHand); if (playerScore < 8 && bankerScore < 8) { let playerDraws = false; if (playerScore <= 5) { playerHand.push(this.deck.pop()); playerDraws = true; playerScore = this.getHandScore(playerHand); } if (playerDraws) { const playerThirdCardValue = this.getCardValue(playerHand[2].rank); if (bankerScore <= 2) { bankerHand.push(this.deck.pop()); } else if (bankerScore === 3 && playerThirdCardValue !== 8) { bankerHand.push(this.deck.pop()); } else if (bankerScore === 4 && [2,3,4,5,6,7].includes(playerThirdCardValue)) { bankerHand.push(this.deck.pop()); } else if (bankerScore === 5 && [4,5,6,7].includes(playerThirdCardValue)) { bankerHand.push(this.deck.pop()); } else if (bankerScore === 6 && [6,7].includes(playerThirdCardValue)) { bankerHand.push(this.deck.pop()); } } else { if (bankerScore <= 5) { bankerHand.push(this.deck.pop()); } } } playerScore = this.getHandScore(playerHand); bankerScore = this.getHandScore(bankerHand); let winner; if (playerScore > bankerScore) winner = "Tay con"; else if (bankerScore > playerScore) winner = "Nhà cái"; else winner = "Hoà"; return { playerHand, bankerHand, winner }; },
+            generateHandForWinner(targetWinner) { let hand; let attempts = 0; do { hand = this.dealHand(); attempts++; } while (hand.winner !== targetWinner && attempts < 100); return hand; }
+        };
+        
+        function createCardTexture(card) {
+            const canvas = document.createElement('canvas');
+            const canvasWidth = 200;
+            const canvasHeight = 280;
+            canvas.width = canvasWidth;
+            canvas.height = canvasHeight;
+            const ctx = canvas.getContext('2d');
+            
+            const primaryColor = AI_CORES[activeCore].color || '#00e5ff';
+            ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+            ctx.fillStyle = 'rgba(10, 25, 40, 0.6)';
+            
+            if (ctx.roundRect) {
+                ctx.beginPath();
+                ctx.roundRect(0, 0, canvasWidth, canvasHeight, [15]);
+                ctx.fill();
+            } else {
+                ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+            }
+            
+            ctx.strokeStyle = primaryColor;
+            ctx.lineWidth = 4;
+            ctx.shadowColor = primaryColor;
+            ctx.shadowBlur = 15;
+            if (ctx.roundRect) {
+                 ctx.beginPath();
+                 ctx.roundRect(2, 2, canvasWidth-4, canvasHeight-4, [13]);
+                 ctx.stroke();
+            } else {
+                ctx.strokeRect(2, 2, canvasWidth-4, canvasHeight-4);
+            }
+           
+            ctx.shadowBlur = 0;
+            ctx.fillStyle = primaryColor;
+            ctx.textAlign = 'center';
+            ctx.font = 'bold 50px Rajdhani';
+            ctx.fillText(card.rank, 40, 60);
+            ctx.font = 'bold 110px Rajdhani';
+            ctx.fillText(card.suit, canvasWidth / 2, canvasHeight / 2 + 35);
+            
+            return new THREE.CanvasTexture(canvas);
+        }
+
+        function initScanAnimation() {
+            const container = document.getElementById('scan-animation-overlay'); const canvas = document.getElementById('scan-animation-canvas'); if (!container || !canvas) return;
+            baccaratAnimation.scene = new THREE.Scene(); baccaratAnimation.camera = new THREE.PerspectiveCamera(75, 16 / 9, 0.1, 1000); baccaratAnimation.camera.position.z = 8;
+            baccaratAnimation.renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true }); baccaratAnimation.renderer.setPixelRatio(window.devicePixelRatio);
+            const light = new THREE.AmbientLight(0xffffff, 1.5); baccaratAnimation.scene.add(light); const dirLight = new THREE.DirectionalLight(0xffffff, 1); dirLight.position.set(5, 10, 7.5); baccaratAnimation.scene.add(dirLight);
+            const laserGeom = new THREE.PlaneGeometry(20, 0.15); const laserMat = new THREE.MeshBasicMaterial({ color: 0x00e5ff, transparent: true, opacity: 0.8, blending: THREE.AdditiveBlending, depthWrite: false });
+            baccaratAnimation.scannerLaser = new THREE.Mesh(laserGeom, laserMat); baccaratAnimation.scannerLaser.position.z = 1; baccaratAnimation.scannerLaser.visible = false; baccaratAnimation.scene.add(baccaratAnimation.scannerLaser);
+        }
+
+        function startCardAnimation(winner) {
+            const overlay = document.getElementById('scan-animation-overlay'); const container = document.getElementById('camera-view'); overlay.style.display = 'flex';
+            if (baccaratAnimation.renderer) { const width = container.clientWidth; const height = container.clientHeight; baccaratAnimation.renderer.setSize(width, height); baccaratAnimation.camera.aspect = width / height; baccaratAnimation.camera.updateProjectionMatrix(); }
+            baccaratAnimation.cardMeshes.forEach(mesh => baccaratAnimation.scene.remove(mesh)); baccaratAnimation.cardMeshes = [];
+            baccaratAnimation.cardTextures = {}; 
+            const primaryColor = AI_CORES[activeCore].color;
+            baccaratAnimation.scannerLaser.material.color.set(primaryColor);
+            baccaratAnimation.scannerLaser.material.needsUpdate = true;
+            const hand = BaccaratGame.generateHandForWinner(winner);
+            const cardWidth = 2.5, cardHeight = cardWidth * 1.4; const cardGeom = new THREE.PlaneGeometry(cardWidth, cardHeight, 5, 7);
+            
+            const createCardMesh = (cardData) => {
+                const frontMat = new THREE.MeshStandardMaterial({
+                    map: createCardTexture(cardData),
+                    side: THREE.DoubleSide,
+                    transparent: true,
+                    roughness: 0.3,
+                    metalness: 0.2,
+                    emissive: new THREE.Color(primaryColor),
+                    emissiveIntensity: 0.4
+                });
+                const backMat = new THREE.MeshBasicMaterial({
+                    color: new THREE.Color(primaryColor),
+                    wireframe: true,
+                    transparent: true,
+                    opacity: 0.6
+                });
+                const group = new THREE.Group();
+                const back = new THREE.Mesh(cardGeom, backMat);
+                const front = new THREE.Mesh(cardGeom, frontMat);
+                front.rotation.y = Math.PI;
+                group.add(back);
+                group.add(front);
+                return group;
+            };
+
+            const allCards = [...hand.playerHand, ...hand.bankerHand];
+            allCards.forEach((cardData) => { const cardMesh = createCardMesh(cardData); cardMesh.visible = false; baccaratAnimation.scene.add(cardMesh); baccaratAnimation.cardMeshes.push(cardMesh); });
+            const clock = new THREE.Clock(); const duration = 4.0; const scanEndTime = 0.8, dealEndTime = scanEndTime + 1.0, flipEndTime = dealEndTime + 0.8, thirdCardDealEndTime = flipEndTime + 0.6;
+            const viewHeight = 12; baccaratAnimation.scannerLaser.position.y = viewHeight / 2; baccaratAnimation.scannerLaser.visible = true;
             function animate() {
-                requestAnimationFrame(animate);
-                const elapsedTime = clock.getElapsedTime();
-                if (!isDragging) {
-                    group.rotation.y += 0.005;
-                    group.rotation.x += 0.002;
-                }
-                if(isScanning) {
-                    group.rotation.y += 0.05;
-                    holoSphere.material.emissiveIntensity = Math.sin(elapsedTime * 15) * 0.5 + 0.8;
-                } else {
-                    holoSphere.material.emissiveIntensity = 0.4;
-                }
-                renderer.render(scene, camera);
+                baccaratAnimation.reqId = requestAnimationFrame(animate); const elapsedTime = clock.getElapsedTime();
+                if (elapsedTime < scanEndTime) { const scanProgress = elapsedTime / scanEndTime; baccaratAnimation.scannerLaser.position.y = (viewHeight / 2) - (scanProgress * viewHeight); baccaratAnimation.scannerLaser.material.opacity = Math.sin(scanProgress * Math.PI); } else { baccaratAnimation.scannerLaser.visible = false; }
+                if (elapsedTime > scanEndTime && elapsedTime < dealEndTime) { const dealProgress = (elapsedTime - scanEndTime) / (dealEndTime - scanEndTime); baccaratAnimation.cardMeshes[0].position.set(-3, 0, 0); baccaratAnimation.cardMeshes[1].position.set(3, 0, 0); baccaratAnimation.cardMeshes[2].position.set(-1.5, 0, 0); baccaratAnimation.cardMeshes[3].position.set(1.5, 0, 0); baccaratAnimation.cardMeshes.forEach((cm, i) => { if(cm) { cm.visible = true; cm.position.y = 5 * (1 - Math.min(1, dealProgress * 4 - i * 0.4)); } }); }
+                if (elapsedTime > dealEndTime && elapsedTime < flipEndTime) { const flipProgress = (elapsedTime - dealEndTime) / (flipEndTime - dealEndTime); for(let i = 0; i < 4; i++) { if(baccaratAnimation.cardMeshes[i]) baccaratAnimation.cardMeshes[i].rotation.y = Math.PI * Math.min(1, flipProgress * 4 - i * 0.5); } }
+                if (elapsedTime > flipEndTime && elapsedTime < thirdCardDealEndTime) { const thirdCardProgress = (elapsedTime - flipEndTime) / (thirdCardDealEndTime - flipEndTime); if (hand.playerHand.length > 2 && baccaratAnimation.cardMeshes[4]) { baccaratAnimation.cardMeshes[4].visible = true; baccaratAnimation.cardMeshes[4].position.set(-4.5, 0, 0); baccaratAnimation.cardMeshes[4].position.y = 5 * (1 - thirdCardProgress); } if (hand.bankerHand.length > 2) { const idx = hand.playerHand.length > 2 ? 5 : 4; if(baccaratAnimation.cardMeshes[idx]) { baccaratAnimation.cardMeshes[idx].visible = true; baccaratAnimation.cardMeshes[idx].position.set(4.5, 0, 0); baccaratAnimation.cardMeshes[idx].position.y = 5 * (1 - thirdCardProgress); } } }
+                if (elapsedTime > thirdCardDealEndTime) { const finalFlipProgress = (elapsedTime - thirdCardDealEndTime) / (duration - thirdCardDealEndTime); if (hand.playerHand.length > 2 && baccaratAnimation.cardMeshes[4]) { baccaratAnimation.cardMeshes[4].rotation.y = Math.PI * Math.min(1, finalFlipProgress * 2); } if (hand.bankerHand.length > 2) { const idx = hand.playerHand.length > 2 ? 5 : 4; if (baccaratAnimation.cardMeshes[idx]) { baccaratAnimation.cardMeshes[idx].rotation.y = Math.PI * Math.min(1, finalFlipProgress * 2); } } }
+                baccaratAnimation.renderer.render(baccaratAnimation.scene, baccaratAnimation.camera);
             }
             animate();
         }
+
+        function stopCardAnimation() {
+            const overlay = document.getElementById('scan-animation-overlay'); overlay.style.display = 'none';
+            if (baccaratAnimation.reqId) { cancelAnimationFrame(baccaratAnimation.reqId); baccaratAnimation.reqId = null; }
+            if (baccaratAnimation.scannerLaser) { baccaratAnimation.scannerLaser.visible = false; }
+        }
         
         const ENVIRONMENTAL_LOGS = [ { type: 'info', text: 'Hiệu chỉnh cảm biến lượng tử...' }, { type: 'info', text: 'Đồng bộ hóa luồng dữ liệu thời gian...' }, { type: 'warn', text: 'Ma trận xác suất dao động...' }, { type: 'info', text: 'Nhiễu môi trường ở mức danh nghĩa.' }, { type: 'analysis', text: 'Ghi nhận 3 thiết bị không dây trong phạm vi.'}, { type: 'warn', text: 'Nhiễu tín hiệu điện từ. Đang hiệu chỉnh...'}, { type: 'info', text: 'Chờ lệnh từ người dùng...' } ];
-
         function initAnalysisTerminal() { 
             addLogMessage('YIAN A.I CORE v19 online. Hệ thống ổn định.', 'success'); 
-            setInterval(() => { 
-                const randomMsg = ENVIRONMENTAL_LOGS[Math.floor(Math.random() * ENVIRONMENTAL_LOGS.length)]; 
-                addLogMessage(randomMsg.text, randomMsg.type); 
-            }, 5000); 
+            setInterval(() => { const randomMsg = ENVIRONMENTAL_LOGS[Math.floor(Math.random() * ENVIRONMENTAL_LOGS.length)]; addLogMessage(randomMsg.text, randomMsg.type); }, 5000); 
         }
 
         function initLoginAnimation() {
-            const canvas = document.getElementById('login-canvas');
-            const scene = new THREE.Scene();
-            const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-            camera.position.z = 5;
-            const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
-            renderer.setSize(window.innerWidth, window.innerHeight);
-
-            const unfoldingCubeGroup = new THREE.Group();
-            const faceSize = 1.5;
-            const planeGeom = new THREE.PlaneGeometry(faceSize, faceSize);
-            const wireframeMat = new THREE.MeshBasicMaterial({ color: 0x00e5ff, wireframe: true });
-            
+            const canvas = document.getElementById('login-canvas'); const scene = new THREE.Scene(); const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000); camera.position.z = 5; const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true }); renderer.setSize(window.innerWidth, window.innerHeight);
+            const unfoldingCubeGroup = new THREE.Group(); const faceSize = 1.5; const planeGeom = new THREE.PlaneGeometry(faceSize, faceSize); const wireframeMat = new THREE.MeshBasicMaterial({ color: 0x00e5ff, wireframe: true });
             const positions = [ { p: [0, faceSize / 2, 0], r: [-Math.PI / 2, 0, 0] }, { p: [0, -faceSize / 2, 0], r: [Math.PI / 2, 0, 0] }, { p: [faceSize / 2, 0, 0], r: [0, -Math.PI / 2, 0] }, { p: [-faceSize / 2, 0, 0], r: [0, Math.PI / 2, 0] }, { p: [0, 0, faceSize / 2], r: [0, 0, 0] }, { p: [0, 0, -faceSize / 2], r: [0, Math.PI, 0] } ];
-            const faces = positions.map(pos => {
-                const plane = new THREE.Mesh(planeGeom, wireframeMat);
-                plane.position.set(pos.p[0], pos.p[1], pos.p[2]);
-                plane.rotation.set(pos.r[0], pos.r[1], pos.r[2]);
-                unfoldingCubeGroup.add(plane);
-                return plane;
-            });
+            const faces = positions.map(pos => { const plane = new THREE.Mesh(planeGeom, wireframeMat); plane.position.set(pos.p[0], pos.p[1], pos.p[2]); plane.rotation.set(pos.r[0], pos.r[1], pos.r[2]); unfoldingCubeGroup.add(plane); return plane; });
             scene.add(unfoldingCubeGroup);
-
-            const coreGeom = new THREE.IcosahedronGeometry(0.5, 0);
-            const coreMat = new THREE.MeshBasicMaterial({ color: 0x00e5ff, transparent: true, opacity: 0.8, blending: THREE.AdditiveBlending });
-            const core = new THREE.Mesh(coreGeom, coreMat);
-            scene.add(core);
-
+            const coreGeom = new THREE.IcosahedronGeometry(0.5, 0); const coreMat = new THREE.MeshBasicMaterial({ color: 0x00e5ff, transparent: true, opacity: 0.8, blending: THREE.AdditiveBlending }); const core = new THREE.Mesh(coreGeom, coreMat); scene.add(core);
             const clock = new THREE.Clock();
-            function animate() {
-                requestAnimationFrame(animate);
-                const elapsedTime = clock.getElapsedTime();
-                unfoldingCubeGroup.rotation.x += 0.003;
-                unfoldingCubeGroup.rotation.y += 0.003;
-                core.rotation.y += 0.005;
-                const unfoldFactor = (Math.sin(elapsedTime * 0.5) + 1) / 2 * 0.8;
-                faces[0].position.y = faceSize / 2 + unfoldFactor; faces[1].position.y = -faceSize / 2 - unfoldFactor; faces[2].position.x = faceSize / 2 + unfoldFactor; faces[3].position.x = -faceSize / 2 - unfoldFactor; faces[4].position.z = faceSize / 2 + unfoldFactor; faces[5].position.z = -faceSize / 2 - unfoldFactor;
-                renderer.render(scene, camera);
-            }
+            function animate() { requestAnimationFrame(animate); const elapsedTime = clock.getElapsedTime(); unfoldingCubeGroup.rotation.x += 0.003; unfoldingCubeGroup.rotation.y += 0.003; core.rotation.y += 0.005; const unfoldFactor = (Math.sin(elapsedTime * 0.5) + 1) / 2 * 0.8; faces[0].position.y = faceSize / 2 + unfoldFactor; faces[1].position.y = -faceSize / 2 - unfoldFactor; faces[2].position.x = faceSize / 2 + unfoldFactor; faces[3].position.x = -faceSize / 2 - unfoldFactor; faces[4].position.z = faceSize / 2 + unfoldFactor; faces[5].position.z = -faceSize / 2 - unfoldFactor; renderer.render(scene, camera); }
             animate();
             window.addEventListener('resize', () => { camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight); });
         }
@@ -1030,53 +512,150 @@
         function initIntroAnimation() {
             const introCanvas = document.getElementById('intro-canvas');
             const scene = new THREE.Scene();
-            const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-            camera.position.z = 100;
-            const renderer = new THREE.WebGLRenderer({ canvas: introCanvas, antialias: true, alpha: true });
+            const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 10000);
+            camera.position.z = 1000;
+            const renderer = new THREE.WebGLRenderer({ canvas: introCanvas, antialias: true });
             renderer.setSize(window.innerWidth, window.innerHeight);
             renderer.setPixelRatio(window.devicePixelRatio);
 
-            const cardGroup = new THREE.Group();
-            const cards = [];
-            const cardWidth = 12, cardHeight = cardWidth * 1.4;
+            const particleCount = 80000;
+            const positions = new Float32Array(particleCount * 3);
+            const colors = new Float32Array(particleCount * 3);
+            const velocities = [];
+            const geometry = new THREE.BufferGeometry();
             
-            for (let i = 0; i < 70; i++) {
-                const material = new THREE.MeshBasicMaterial({ color: 0x00e5ff, wireframe: true, transparent: true, opacity: 0.5 });
-                const geometry = new THREE.PlaneGeometry(cardWidth, cardHeight);
-                const card = new THREE.Mesh(geometry, material);
-                const angle = i * 0.35;
-                const radius = 25 + Math.random() * 10;
-                card.position.x = Math.cos(angle) * radius;
-                card.position.y = Math.sin(angle) * radius;
-                card.position.z = -i * 10;
-                card.rotation.z = Math.random() * Math.PI * 2;
-                cardGroup.add(card);
-                cards.push(card);
+            const color1 = new THREE.Color(getComputedStyle(document.documentElement).getPropertyValue('--prism-color-1'));
+            const color2 = new THREE.Color(getComputedStyle(document.documentElement).getPropertyValue('--prism-color-2'));
+            const color3 = new THREE.Color(getComputedStyle(document.documentElement).getPropertyValue('--prism-color-3'));
+            const colorPalette = [color1, color2, color3];
+
+            for (let i = 0; i < particleCount; i++) {
+                positions[i * 3] = 0;
+                positions[i * 3 + 1] = 0;
+                positions[i * 3 + 2] = 0;
+
+                const color = colorPalette[Math.floor(Math.random() * 3)];
+                colors[i * 3] = color.r;
+                colors[i * 3 + 1] = color.g;
+                colors[i * 3 + 2] = color.b;
+
+                const phi = Math.acos((Math.random() * 2) - 1);
+                const theta = Math.random() * Math.PI * 2;
+                const speed = Math.random() * 25 + 5;
+                velocities.push(
+                    new THREE.Vector3(
+                        speed * Math.sin(phi) * Math.cos(theta),
+                        speed * Math.sin(phi) * Math.sin(theta),
+                        speed * Math.cos(phi)
+                    )
+                );
             }
-            scene.add(cardGroup);
+
+            geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+            const material = new THREE.PointsMaterial({
+                size: 3,
+                vertexColors: true,
+                blending: THREE.AdditiveBlending,
+                transparent: true,
+                opacity: 1,
+                depthWrite: false
+            });
+
+            const particles = new THREE.Points(geometry, material);
+            scene.add(particles);
 
             const clock = new THREE.Clock();
             function animate() {
                 const elapsedTime = clock.getElapsedTime();
-                if (elapsedTime > 5.5) return;
+                if (elapsedTime > 7) return;
                 requestAnimationFrame(animate);
-                cardGroup.position.z += 1.2;
-                const pulseZ = cardGroup.position.z - 80;
-                const pulseWidth = 50;
-                cards.forEach(card => {
-                    const cardWorldZ = card.position.z + cardGroup.position.z;
-                    const distance = Math.abs(cardWorldZ - pulseZ);
-                    if (distance < pulseWidth) {
-                        const intensity = 1.0 - (distance / pulseWidth);
-                        card.material.opacity = 0.3 + intensity * 0.7;
-                    } else {
-                        card.material.opacity = 0.3;
-                    }
-                });
+
+                const positions = particles.geometry.attributes.position.array;
+                const explosionProgress = Math.min(1, elapsedTime / 2);
+
+                for (let i = 0; i < particleCount; i++) {
+                    const i3 = i * 3;
+                    positions[i3] += velocities[i].x * explosionProgress;
+                    positions[i3 + 1] += velocities[i].y * explosionProgress;
+                    positions[i3 + 2] += velocities[i].z * explosionProgress;
+                }
+                
+                if(elapsedTime > 2) {
+                    material.opacity = Math.max(0, 1 - (elapsedTime - 2) / 4);
+                }
+
+                particles.geometry.attributes.position.needsUpdate = true;
+                scene.rotation.y = elapsedTime * 0.1;
+
                 renderer.render(scene, camera);
             }
             animate();
             window.addEventListener('resize', () => { camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight); });
+        }
+
+        function initBackgroundGrid() {
+            const canvas = document.getElementById('background-canvas'); if (!canvas) return;
+            const scene = new THREE.Scene(); const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 1000); camera.position.set(0, 20, 0); camera.lookAt(scene.position);
+            const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true }); renderer.setSize(window.innerWidth, window.innerHeight); renderer.setPixelRatio(window.devicePixelRatio);
+            const gridColor = new THREE.Color(getComputedStyle(document.documentElement).getPropertyValue('--primary-color').trim());
+            const grid = new THREE.GridHelper(200, 40, gridColor, gridColor); grid.material.opacity = 0.2; grid.material.transparent = true; scene.add(grid);
+            const clock = new THREE.Clock();
+            function animate() { requestAnimationFrame(animate); const elapsedTime = clock.getElapsedTime(); grid.position.z = (elapsedTime * 2) % 10; renderer.render(scene, camera); }
+            window.addEventListener('resize', () => { camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight); });
+            animate();
+        }
+
+        let matrixCtx, matrixCols, matrixDrops;
+        function initMatrixAnimation() {
+            const canvas = document.getElementById('matrix-canvas');
+            matrixCtx = canvas.getContext('2d');
+            const container = canvas.parentElement.parentElement;
+            
+            canvas.width = container.clientWidth;
+            canvas.height = container.clientHeight;
+
+            const characters = 'YIANCOREMATRIX0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+            const fontSize = 14;
+            matrixCols = Math.floor(canvas.width / fontSize);
+            matrixDrops = [];
+            for(let i = 0; i < matrixCols; i++) {
+                matrixDrops[i] = 1;
+            }
+            
+            function drawMatrix() {
+                matrixCtx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+                matrixCtx.fillRect(0, 0, canvas.width, canvas.height);
+                matrixCtx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--prism-color-1');
+                matrixCtx.font = `${fontSize}px ${getComputedStyle(document.documentElement).getPropertyValue('--font-mono')}`;
+
+                for(let i = 0; i < matrixDrops.length; i++) {
+                    let text = characters[Math.floor(Math.random() * characters.length)];
+                    matrixCtx.fillText(text, i * fontSize, matrixDrops[i] * fontSize);
+                    if(matrixDrops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+                        matrixDrops[i] = 0;
+                    }
+                    matrixDrops[i]++;
+                }
+            }
+            
+            function animateMatrix() {
+                drawMatrix();
+                matrixAnimationId = requestAnimationFrame(animateMatrix);
+            }
+            
+            window.startMatrixAnimation = () => {
+                document.getElementById('matrix-overlay').style.display = 'block';
+                if(matrixAnimationId) cancelAnimationFrame(matrixAnimationId);
+                animateMatrix();
+            }
+
+            window.stopMatrixAnimation = () => {
+                document.getElementById('matrix-overlay').style.display = 'none';
+                if(matrixAnimationId) cancelAnimationFrame(matrixAnimationId);
+                matrixAnimationId = null;
+            }
         }
     </script>
 </body>
