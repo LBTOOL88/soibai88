@@ -3,10 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>YIAN A.I CORE v21.3 </title>
+    <title>YIAN SCAN</title>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Firebase SDK Scripts -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;700&family=Share+Tech+Mono&display=swap');
@@ -22,19 +27,13 @@
             --success-color: #34ffb9;
             --warning-color: #ffd60a;
             --info-color: #64b5f6;
+            --nuclear-red: #ff1e1e;
             --font-primary: 'Rajdhani', sans-serif;
             --font-mono: 'Share Tech Mono', monospace;
             --prism-gradient: linear-gradient(45deg, #00e5ff, #ff00e0, #ffd60a);
-            --prism-color-1: #00e5ff;
-            --prism-color-2: #ff00e0;
-            --prism-color-3: #ffd60a;
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
             background-color: var(--bg-color);
@@ -49,14 +48,12 @@
 
         #background-canvas {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
             z-index: -1;
         }
 
-        #startup-intro, .modal-overlay {
+        .modal-overlay {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
             z-index: 2000;
@@ -64,29 +61,35 @@
             justify-content: center;
             align-items: center;
             flex-direction: column;
+            background: rgba(0, 0, 0, 0.9); 
+            display: none;
+            perspective: 1000px;
         }
-        
-        #startup-intro { background-color: #000; }
-        .modal-overlay { background: rgba(0, 0, 0, 0.9); display: none; }
         
         #login-canvas {
             position: absolute; top: 0; left: 0;
             width: 100%; height: 100%;
+            display: none; /* Hide the old 3D cube */
+        }
+        
+        /* New Login Screen Glitch Effect */
+        #login-overlay::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: repeating-linear-gradient(0deg, rgba(0,0,0,0) 0, rgba(255,255,255,0.03) 1px, rgba(0,0,0,0) 2px);
+            pointer-events: none;
+            animation: glitch-lines 0.4s steps(1) infinite;
+        }
+        @keyframes glitch-lines {
+            0%, 100% { transform: translateY(0); }
+            10% { transform: translateY(2px); }
+            30% { transform: translateY(-3px); }
+            50% { transform: translateY(5px); }
+            70% { transform: translateY(-1px); }
         }
 
-        /* [NEW] Intro Styles */
-        #intro-boot-screen{width:95%;max-width:800px;height:80%;background:#000;border:2px solid var(--prism-color-1);box-shadow:0 0 20px var(--prism-color-1);color:var(--success-color);font-family:var(--font-mono);padding:20px;overflow:hidden;position:relative}
-        #boot-text{white-space:pre-wrap;font-size:0.9em;height:100%;overflow-y:auto}
-        #boot-text .caret{display:inline-block;width:10px;height:1.2em;background:var(--success-color);animation:caret-blink 1s steps(1) infinite;vertical-align:middle}
-        @keyframes caret-blink{50%{opacity:0}}
-        #intro-loading-container{width:95%;max-width:800px;margin-top:20px;display:none}
-        #loading-bar-outer{width:100%;height:20px;border:1px solid var(--primary-color);padding:2px;border-radius:5px}
-        #loading-bar-inner{width:0;height:100%;background:var(--primary-color);border-radius:3px;transition:width 0.1s linear}
-        #loading-percent{font-family:var(--font-mono);color:var(--primary-color);margin-top:5px;text-align:center}
-        #intro-main-title{font-size:1.8em;font-weight:700;letter-spacing:4px;text-transform:uppercase;color:var(--primary-color);text-shadow:0 0 15px var(--primary-color);opacity:0;display:none;animation:glitch 1.5s linear infinite, fadeInTitle 1s ease forwards; font-family: var(--font-mono);}
-        
-        @keyframes glitch{2%,64%{transform:translate(2px,0) skew(0deg)}4%,60%{transform:translate(-2px,0) skew(0deg)}62%{transform:translate(0,0) skew(5deg)}}
-        @keyframes fadeInTitle{to{opacity:1}}
 
         .app-container {
             display: none; 
@@ -105,9 +108,7 @@
             animation: fadeInApp 1s 0.5s forwards;
         }
 
-        @keyframes fadeInApp {
-            to { opacity: 1; }
-        }
+        @keyframes fadeInApp { to { opacity: 1; } }
 
         .panel {
             background: var(--container-bg);
@@ -115,8 +116,7 @@
             backdrop-filter: blur(16px) saturate(180%);
             -webkit-backdrop-filter: blur(16px) saturate(180%);
             padding: 20px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), 
-                        inset 0 1px 1px rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.1);
             display: flex;
             flex-direction: column;
             gap: 15px;
@@ -129,19 +129,10 @@
             position: absolute;
             top: -50%; left: -50%;
             width: 200%; height: 200%;
-            background: conic-gradient(
-                from var(--angle),
-                var(--prism-color-2), 
-                var(--prism-color-3), 
-                var(--prism-color-1),
-                var(--prism-color-2)
-            );
+            background: conic-gradient(from var(--angle), var(--prism-gradient));
             animation: rotate 6s linear infinite;
         }
-        .panel > * {
-            position: relative;
-            z-index: 1;
-        }
+        .panel > * { position: relative; z-index: 1; }
         .panel::after {
             content: '';
             position: absolute;
@@ -149,14 +140,8 @@
             background: #0a1928;
             border-radius: 14px;
         }
-        @property --angle {
-          syntax: '<angle>';
-          initial-value: 0deg;
-          inherits: false;
-        }
-        @keyframes rotate {
-          to { --angle: 360deg; }
-        }
+        @property --angle { syntax: '<angle>'; initial-value: 0deg; inherits: false; }
+        @keyframes rotate { to { --angle: 360deg; } }
         
         .panel-title {
             font-size: 1.2em;
@@ -172,12 +157,11 @@
 
         .app-header {
             grid-area: header;
-            text-align: center;
-            padding: 0;
-            border: none;
-            background: none;
-            box-shadow: none;
-            backdrop-filter: none;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0; border: none;
+            background: none; box-shadow: none; backdrop-filter: none;
         }
         .app-header h1 {
             font-size: 2.5em;
@@ -186,58 +170,67 @@
             background: var(--prism-gradient);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            filter: drop-shadow(0 0 15px var(--prism-color-1));
+            filter: drop-shadow(0 0 15px var(--primary-color));
+            text-align: center;
+            flex-grow: 1;
         }
+        
+        #user-info-panel {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-family: var(--font-mono);
+            position: absolute;
+            right: 20px;
+            top: 25px;
+        }
+        #username-display {
+            color: var(--primary-color);
+            font-weight: 700;
+            font-size: 1.1em;
+        }
+        .header-button {
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 700;
+            transition: all 0.2s ease;
+        }
+        #back-to-lobby-button {
+            background: var(--info-color);
+            color: #fff;
+            box-shadow: 0 0 10px var(--info-color);
+        }
+        #logout-button {
+            background: var(--error-color);
+            color: #fff;
+            box-shadow: 0 0 10px var(--error-color);
+        }
+        .header-button:hover {
+            transform: scale(1.05);
+            filter: brightness(1.2);
+        }
+
 
         .left-panel { grid-area: left-panel; }
         
-        #core-selector {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-        }
+        #core-selector { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
         .core-button {
-            aspect-ratio: 1 / 1;
-            background: linear-gradient(145deg, #0f2335, #0c1d2c);
-            border: 1px solid rgba(255,255,255,0.1);
-            color: var(--secondary-color);
-            cursor: pointer;
-            border-radius: 10px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            transition: all 0.2s ease-out;
-            position: relative;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.5), inset 0 1px 1px rgba(255,255,255,0.1);
+            aspect-ratio: 1 / 1; background: linear-gradient(145deg, #0f2335, #0c1d2c);
+            border: 1px solid rgba(255,255,255,0.1); color: var(--secondary-color);
+            cursor: pointer; border-radius: 10px; display: flex; flex-direction: column;
+            justify-content: center; align-items: center; transition: all 0.2s ease-out;
+            position: relative; box-shadow: 0 4px 10px rgba(0,0,0,0.5), inset 0 1px 1px rgba(255,255,255,0.1);
         }
         .core-button:hover {
              transform: translateY(-5px);
              box-shadow: 0 8px 20px rgba(0,0,0,0.6), inset 0 1px 1px rgba(255,255,255,0.1);
         }
-        .core-button.active {
-            transform: translateY(-2px);
-            filter: brightness(1.2);
-        }
-        .core-button.active svg {
-            filter: drop-shadow(0 0 8px var(--glow-color));
-        }
-        .core-button[data-core="yian"].active { color: var(--yian-color); }
-        .core-button[data-core="titan"].active { color: var(--titan-color); }
-        .core-button[data-core="oracle"].active { color: var(--oracle-color); }
-        .core-button[data-core="fusion"].active { color: var(--fusion-color); }
-
-        .core-button svg {
-            width: 40%;
-            height: 40%;
-            margin-bottom: 8px;
-            transition: all 0.3s ease;
-        }
-        .core-button span {
-            font-weight: 700;
-            font-size: 1em;
-            letter-spacing: 1px;
-        }
+        .core-button.active { transform: translateY(-2px); filter: brightness(1.2); }
+        .core-button.active svg { filter: drop-shadow(0 0 8px var(--glow-color)); }
+        .core-button svg { width: 40%; height: 40%; margin-bottom: 8px; transition: all 0.3s ease; }
+        .core-button span { font-weight: 700; font-size: 1em; letter-spacing: 1px; }
 
         #energy-display { text-align: center; }
         #energy-bar-outer { width: 100%; height: 15px; background: rgba(0,0,0,0.4); border: 1px solid var(--border-color); border-radius: 8px; padding: 2px; }
@@ -258,57 +251,26 @@
         @keyframes scanlines { from { background-position: 0 0; } to { background-position: 0 100%; } }
         
         #matrix-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            display: none;
-            z-index: 11; 
-            opacity: 0.6; 
-            pointer-events: none; 
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            display: none; z-index: 11; opacity: 0.6; pointer-events: none; 
         }
-        #matrix-canvas {
-            display: block;
-            width: 100%;
-            height: 100%;
-        }
+        #matrix-canvas { display: block; width: 100%; height: 100%; }
 
         .scan-controls { display: flex; flex-direction: column; align-items: center; gap: 15px; }
         #scan-button {
-            width: 80%;
-            max-width: 400px;
-            padding: 15px;
-            font-size: 1.5em;
-            font-weight: 700;
-            letter-spacing: 3px;
-            color: #fff;
-            background: var(--prism-gradient);
-            background-size: 200% 200%;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-shadow: 0 1px 5px rgba(0,0,0,0.4);
-            position: relative;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.4), inset 0 1px 2px rgba(255,255,255,0.2);
+            width: 80%; max-width: 400px; padding: 15px; font-size: 1.5em; font-weight: 700;
+            letter-spacing: 3px; color: #fff; background: var(--prism-gradient);
+            background-size: 200% 200%; border: none; border-radius: 10px; cursor: pointer;
+            transition: all 0.3s ease; text-shadow: 0 1px 5px rgba(0,0,0,0.4);
+            position: relative; box-shadow: 0 5px 15px rgba(0,0,0,0.4), inset 0 1px 2px rgba(255,255,255,0.2);
             animation: gradient-pan 5s ease infinite;
         }
-        @keyframes gradient-pan {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
+        @keyframes gradient-pan { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
         #scan-button:hover:not(:disabled) {
             transform: scale(1.05) translateY(-3px);
             box-shadow: 0 8px 25px rgba(0, 229, 255, 0.4), inset 0 1px 2px rgba(255,255,255,0.2);
         }
-        #scan-button:disabled {
-            background: #555;
-            color: #999;
-            cursor: not-allowed;
-            animation: none;
-        }
+        #scan-button:disabled { background: #555; color: #999; cursor: not-allowed; animation: none; }
         
         #result-display { background: rgba(0,0,0,0.3); border: 1px solid var(--border-color); border-radius: 10px; padding: 15px; text-align: center; min-height: 150px; display: flex; flex-direction: column; justify-content: center; align-items: center; }
         #result-text { font-family: var(--font-mono); font-size: 2.2em; font-weight: 700; letter-spacing: 2px; color: var(--success-color); text-shadow: 0 0 10px var(--success-color); min-height: 40px; }
@@ -334,10 +296,51 @@
         #roadmap-container { flex-grow: 1; display: flex; flex-direction: column; min-height: 150px; }
         #roadmap-canvas { width: 100%; height: 100%; background: rgba(0,0,0,0.5); border-radius: 5px; border: 1px solid var(--border-color); }
 
-        .modal-box { background: var(--container-bg); backdrop-filter: blur(10px); border: 1px solid var(--primary-color); border-radius: 15px; padding: 30px; box-shadow: 0 0 60px var(--glow-color); text-align: center; width: 90%; max-width: 450px; animation: fadeInContainer 0.5s; z-index: 10; position: relative; }
-        .modal-box h2 { color: var(--primary-color); margin-top: 0; font-weight: 700; letter-spacing: 2px; font-size: 1.5em; }
-        .modal-input { width: 100%; background: rgba(0,0,0,0.5); border: 1px solid var(--primary-color); color: var(--primary-color); padding: 12px; margin: 15px 0; border-radius: 5px; font-size: 1.6em; text-align: center; letter-spacing: 8px; font-family: var(--font-mono); }
-        .modal-button { width: 100%; padding: 12px; background: var(--primary-color); color: #000; border: none; border-radius: 5px; font-size: 1.2em; font-weight: 700; cursor: pointer; transition: all 0.3s; letter-spacing: 1px; }
+        .modal-box { 
+            background: var(--container-bg); 
+            backdrop-filter: blur(10px); 
+            border: 2px solid var(--nuclear-red); 
+            border-radius: 15px; 
+            padding: 30px; 
+            text-align: center; 
+            width: 90%; 
+            max-width: 480px; 
+            z-index: 10; 
+            position: relative; 
+            box-shadow: 0 0 15px var(--nuclear-red), 0 0 30px var(--nuclear-red), inset 0 0 10px var(--nuclear-red);
+            animation: nuclear-flicker 3s linear infinite;
+        }
+        @keyframes nuclear-flicker {
+            0%, 100% { box-shadow: 0 0 15px var(--nuclear-red), 0 0 30px var(--nuclear-red), inset 0 0 10px var(--nuclear-red); }
+            50% { box-shadow: 0 0 20px var(--nuclear-red), 0 0 40px var(--nuclear-red), inset 0 0 15px var(--nuclear-red); }
+        }
+
+        .modal-box h2 { 
+            color: var(--nuclear-red); 
+            margin-top: 0; 
+            font-weight: 700; 
+            letter-spacing: 3px; 
+            font-size: 1.6em;
+            text-shadow: 0 0 5px var(--nuclear-red), 0 0 10px #fff;
+            animation: text-flicker 2s linear infinite;
+        }
+        @keyframes text-flicker {
+            0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% {
+                text-shadow: 0 0 5px var(--nuclear-red), 0 0 10px #fff;
+                opacity: 1;
+            }
+            20%, 24%, 55% {
+                text-shadow: none;
+                opacity: 0.8;
+            }
+        }
+        
+        .modal-input { 
+            width: 100%; background: rgba(0,0,0,0.5); border: 1px solid var(--nuclear-red); 
+            color: var(--nuclear-red); padding: 12px 15px; margin: 8px 0; border-radius: 5px; 
+            font-size: 1.1em; font-family: var(--font-mono); letter-spacing: normal; text-align: left;
+        }
+        .modal-button { width: 100%; padding: 12px; background: var(--nuclear-red); color: #fff; border: none; border-radius: 5px; font-size: 1.2em; font-weight: 700; cursor: pointer; transition: all 0.3s; letter-spacing: 1px; margin-top: 15px; box-shadow: 0 0 10px var(--nuclear-red); }
         #login-error { color: var(--error-color); min-height: 20px; font-weight: 700; }
         
         #login-notification { color: var(--warning-color); background: rgba(255, 214, 10, 0.1); border: 1px solid var(--warning-color); border-radius: 8px; padding: 10px; margin-bottom: 15px; font-size: 0.9em; font-weight: 500; }
@@ -352,8 +355,28 @@
 
         .app-footer { grid-area: footer; text-align: center; padding: 15px 0 5px 0; color: rgba(193, 215, 224, 0.4); font-family: var(--font-mono); font-size: 0.9em; }
 
+        .login-banner {
+            display: block;
+            width: fit-content;
+            margin: 20px auto 0 auto;
+            padding: 10px 25px;
+            border-radius: 8px;
+            background: linear-gradient(45deg, var(--nuclear-red), var(--warning-color));
+            color: #fff;
+            text-decoration: none;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            box-shadow: 0 0 15px rgba(255, 30, 30, 0.6);
+            transition: all 0.3s ease;
+        }
+        .login-banner:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 25px rgba(255, 30, 30, 0.8);
+        }
+
         #lobby-selection-overlay{flex-direction:column;gap:20px}
-        #lobby-title{font-size:2.5em;font-weight:700;letter-spacing:8px;background:var(--prism-gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent;filter:drop-shadow(0 0 15px var(--prism-color-1))}
+        #lobby-title{font-size:2.5em;font-weight:700;letter-spacing:8px;background:var(--prism-gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent;filter:drop-shadow(0 0 15px var(--primary-color))}
         #lobby-cards-container{display:flex;gap:20px;perspective:1000px;flex-wrap:nowrap;justify-content:center; width:100%; padding: 0 20px;}
         .lobby-card{width:45%; max-width: 240px; cursor:pointer;position:relative;transform-style:preserve-3d;transition:transform 0.5s}
         .lobby-card:hover{transform:translateY(-10px)}
@@ -361,36 +384,27 @@
         .lobby-card-title{text-align:center;font-weight:700;font-size:1em;letter-spacing:1px;padding:8px;color:#fff;background:rgba(0,0,0,0.5);border-radius:0 0 15px 15px;position:absolute;bottom:0;width:100%;backdrop-filter:blur(5px)}
         
         @media (max-width: 768px){#lobby-title{font-size:2em}}
-        @media (max-width: 1200px){.app-container{grid-template-columns:250px 1fr 250px}}@media (max-width: 992px){.app-container{grid-template-columns:1fr 1fr;grid-template-rows:auto auto 1fr auto;grid-template-areas:"header header" "main-panel main-panel" "left-panel right-panel" "footer footer";padding:15px;gap:15px}.main-display-grid{grid-template-columns:1fr;grid-template-rows:minmax(200px, 40vh) auto}#holo-container{min-height:150px}}@media (max-width: 768px){.app-container{grid-template-columns:1fr;grid-template-rows:auto auto auto auto auto;grid-template-areas:"header" "main-panel" "left-panel" "right-panel" "footer"}}@media (max-width: 576px){body{-webkit-text-size-adjust:100%}.app-container{padding:10px;gap:10px}.panel{padding:10px;gap:10px}.app-header h1{font-size:1.6em;letter-spacing:3px}.panel-title{font-size:1.1em;padding-bottom:8px;margin-bottom:8px}#core-selector{gap:8px}.core-button{aspect-ratio:1.2 / 1}.core-button svg{width:35%;height:35%;margin-bottom:5px}.core-button span{font-size:0.85em}.main-panel{grid-template-rows:auto auto}.main-display-grid{display:block}#camera-view{height:35vh;min-height:220px}#holo-container{display:none}.scan-controls{gap:10px}#result-display{padding:10px 15px;min-height:auto}#result-text{font-size:1.8em;min-height:40px}#scan-button{padding:12px;font-size:1.3em;width:90%}#system-log-container, #roadmap-container{min-height:130px}#system-log{font-size:0.8em}.modal-box{width:95%}.modal-input{font-size:1.2em;letter-spacing:5px}}
+        @media (max-width: 1200px){.app-container{grid-template-columns:250px 1fr 250px}}@media (max-width: 992px){.app-container{grid-template-columns:1fr 1fr;grid-template-rows:auto auto 1fr auto;grid-template-areas:"header header" "main-panel main-panel" "left-panel right-panel" "footer footer";padding:15px;gap:15px}.main-display-grid{grid-template-columns:1fr;grid-template-rows:minmax(200px, 40vh) auto}#holo-container{min-height:150px}}@media (max-width: 768px){.app-container{grid-template-columns:1fr;grid-template-rows:auto auto auto auto auto;grid-template-areas:"header" "main-panel" "left-panel" "right-panel" "footer"}}@media (max-width: 576px){body{-webkit-text-size-adjust:100%}.app-container{padding:10px;gap:10px}.panel{padding:10px;gap:10px}.app-header h1{font-size:1.6em;letter-spacing:3px}.panel-title{font-size:1.1em;padding-bottom:8px;margin-bottom:8px}#core-selector{gap:8px}.core-button{aspect-ratio:1.2 / 1}.core-button svg{width:35%;height:35%;margin-bottom:5px}.core-button span{font-size:0.85em}.main-panel{grid-template-rows:auto auto}.main-display-grid{display:block}#camera-view{height:35vh;min-height:220px}#holo-container{display:none}.scan-controls{gap:10px}#result-display{padding:10px 15px;min-height:auto}#result-text{font-size:1.8em;min-height:40px}#scan-button{padding:12px;font-size:1.3em;width:90%}#system-log-container, #roadmap-container{min-height:130px}#system-log{font-size:0.8em}.modal-box{width:95%}.modal-input{font-size:1.1em; letter-spacing: normal;}}
     </style>
 </head>
 <body>
     <canvas id="background-canvas"></canvas>
     
-    <div id="startup-intro">
-        <div id="intro-boot-screen">
-            <div id="boot-text"></div>
-        </div>
-        <div id="intro-loading-container">
-            <div id="loading-bar-outer">
-                <div id="loading-bar-inner"></div>
-            </div>
-            <span id="loading-percent">0%</span>
-        </div>
-        <h1 id="intro-main-title">KHỞI ĐỘNG A.I YIAN !</h1>
-    </div>
-
     <div id="login-overlay" class="modal-overlay">
         <canvas id="login-canvas"></canvas>
         <div class="modal-box">
-            <h2>YÊU CẦU XÁC THỰC</h2>
+            <h2>KHU VỰC TRUY CẬP CAO CẤP</h2>
             <p id="login-error"></p>
             <div id="login-notification">
                 TOOL CHỈ HOẠT ĐỘNG VỚI CÁC TÀI KHOẢN ĐĂNG KÍ TẠI <a href="http://www.f168.codes" target="_blank" class="styled-link">WWW.F168.CODES</a>
             </div>
-            <input type="text" id="access-code-input" class="modal-input" placeholder="ACCESS CODE">
-            <button id="login-button" class="modal-button">TRUY CẬP HỆ THỐNG</button>
+            
+            <input type="text" id="username-input" class="modal-input" placeholder="TÊN TÀI KHOẢN HOẶC EMAIL">
+            <input type="password" id="password-input" class="modal-input" placeholder="MẬT KHẨU">
+            
+            <button id="login-button" class="modal-button">ĐĂNG NHẬP</button>
             <button id="show-instructions-button">Xem Hướng Dẫn</button>
+            <a href="http://www.hackbcr2026.site" target="_blank" class="login-banner">QUAY LẠI CHỌN LÕI A.I</a>
         </div>
     </div>
     
@@ -419,7 +433,12 @@
 
     <div class="app-container">
         <header class="app-header">
-            <h1>YIAN A.I. COMMAND CENTER</h1>
+            <h1>YIAN SCAN</h1>
+            <div id="user-info-panel">
+                <span id="username-display"></span>
+                <button id="back-to-lobby-button" class="header-button">CHỌN LẠI SẢNH</button>
+                <button id="logout-button" class="header-button">ĐĂNG XUẤT</button>
+            </div>
         </header>
 
         <div class="left-panel panel">
@@ -505,30 +524,104 @@
         let history = [];
         let baccaratAnimation = { renderer: null, scene: null, camera: null, reqId: null, cards: [], cardMeshes: [], cardTextures: {}, scannerLaser: null };
         let matrixAnimationId = null; 
+        let energyListenerUnsubscribe = null; // Biến để hủy lắng nghe thời gian thực
+        let cameraStream = null; // Biến lưu trữ stream camera
         
         const loginOverlay = document.getElementById('login-overlay');
         const mainContainer = document.querySelector('.app-container');
         const lobbyOverlay = document.getElementById('lobby-selection-overlay');
 
-        function stringToHex(str) { let result = ''; for (let i = 0; i < str.length; i++) { result += str.charCodeAt(i).toString(16); } return result.toUpperCase(); }
-        
-        function authenticate(code) {
-            const upperCaseCode = code.toUpperCase();
-            const hexCode = stringToHex(upperCaseCode);
-            
-            const validHashes = ["43594245524E4558555337","4D4154524958434F524539","564F494457414C4B455231","4E4542554C41484F535434","5155414E54554D4C45415038","5A454E4954484B45593232","4150455850524F544F434F4C","45434C4950534547415445","53504543545245434F444535","4F52494F4E504153533333","48454C4958434841494E3138","4E4F564153545245414D37","50554C5341524C494E4B36","414547495347554152443939","4348524F4E4F534B45593131","564F525445584855423231","4C594E58475249443737","544954414E46414C4C3136","4F5241434C454559453838","465553494F4E445249564531"];
+        // --- CẤU HÌNH FIREBASE ---
+        const firebaseConfig = {
+          apiKey: "AIzaSyCHDzGbXmHNWKL2UtRm57vPRVxZb31dHto",
+          authDomain: "long-bao-tool-ai.firebaseapp.com",
+          projectId: "long-bao-tool-ai",
+          storageBucket: "long-bao-tool-ai.firebasestorage.app",
+          messagingSenderId: "259613170671",
+          appId: "1:259613170671:web:55291d0b0af4e69052b41a",
+          measurementId: "G-7V7H3JWX7K"
+        };
 
-            if (validHashes.includes(hexCode)) {
-                currentUser = upperCaseCode;
-                userEnergy = 100;
-                loginOverlay.style.display = 'none';
-                lobbyOverlay.style.display = 'flex'; 
+        // Khởi tạo Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+        
+        // --- HÀM XÁC THỰC VÀ ĐỒNG BỘ NĂNG LƯỢNG ---
+        async function authenticate(username, password) {
+            const errorEl = document.getElementById('login-error');
+            const loginButton = document.getElementById('login-button');
+            
+            let email;
+            const userInput = username.trim().toLowerCase();
+
+            if (userInput.includes('@')) {
+                email = userInput;
             } else {
-                const errorEl = document.getElementById('login-error');
-                errorEl.textContent = "MÃ TRUY CẬP KHÔNG HỢP LỆ";
-                setTimeout(() => errorEl.textContent = "", 2000);
+                email = `${userInput}@longbao-tool.ai`;
+            }
+
+            console.log(`Đang thử đăng nhập với email: ${email}`);
+
+            errorEl.textContent = "ĐANG XÁC THỰC...";
+            loginButton.disabled = true;
+
+            try {
+                const userCredential = await auth.signInWithEmailAndPassword(email, password);
+                const user = userCredential.user;
+                currentUser = user.email.split('@')[0].toUpperCase();
+                document.getElementById('username-display').textContent = currentUser;
+                
+                // Bắt đầu lắng nghe thay đổi năng lượng
+                syncEnergy(user.uid);
+
+                loginOverlay.style.display = 'none';
+                lobbyOverlay.style.display = 'flex';
+                errorEl.textContent = "";
+
+            } catch (error) {
+                console.error("Lỗi Firebase Auth:", error.code, error.message);
+                if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
+                    errorEl.textContent = "TÀI KHOẢN HOẶC MẬT KHẨU KHÔNG ĐÚNG";
+                } else if (error.code === 'auth/invalid-email') {
+                    errorEl.textContent = "TÊN TÀI KHOẢN KHÔNG HỢP LỆ";
+                }
+                else {
+                    errorEl.textContent = "ĐÃ XẢY RA LỖI. VUI LÒNG THỬ LẠI.";
+                }
+                setTimeout(() => errorEl.textContent = "", 3000);
+            } finally {
+                loginButton.disabled = false;
             }
         }
+        
+        // Hàm đồng bộ và lắng nghe thay đổi năng lượng (Nâng cấp)
+        function syncEnergy(uid) {
+            const userDocRef = db.collection('users').doc(uid);
+            
+            if (energyListenerUnsubscribe) {
+                energyListenerUnsubscribe();
+            }
+
+            energyListenerUnsubscribe = userDocRef.onSnapshot((doc) => {
+                if (!doc.exists) {
+                    userDocRef.set({ energy: 100 })
+                        .then(() => addLogMessage('Tạo dữ liệu năng lượng cho người dùng mới.', 'success'))
+                        .catch(err => console.error("Lỗi tạo dữ liệu người dùng:", err));
+                } else {
+                    const newEnergy = doc.data().energy;
+                    if (newEnergy !== undefined && newEnergy !== userEnergy) {
+                         addLogMessage(`Năng lượng được cập nhật từ server: ${newEnergy}%`, 'info');
+                         userEnergy = newEnergy;
+                         updateEnergyBar();
+                    }
+                }
+            }, (error) => {
+                console.error("Lỗi lắng nghe năng lượng:", error);
+                addLogMessage('Mất kết nối đồng bộ năng lượng.', 'error');
+            });
+        }
+
 
         function selectLobby(lobbyName) {
             lobbyOverlay.style.display = 'none';
@@ -546,7 +639,6 @@
             initScanAnimation();
             initAnalysisTerminal();
             drawRoadmap();
-            initBackgroundGrid(); 
             initMatrixAnimation(); 
         }
         
@@ -561,6 +653,7 @@
 
         function addLogMessage(msg, type = 'info') {
             const systemLog = document.getElementById('system-log');
+            if (!systemLog) return;
             const line = document.createElement('div');
             line.className = `log-line ${type}`;
             line.textContent = `[${new Date().toLocaleTimeString()}]> ${msg}`;
@@ -571,15 +664,14 @@
         function setActiveCore(coreName) {
             activeCore = coreName;
             const newColor = AI_CORES[coreName].color;
-            const newGlow = AI_CORES[coreName].glow || `${newColor}bf`;
             document.documentElement.style.setProperty('--primary-color', newColor);
-            document.documentElement.style.setProperty('--glow-color', newGlow);
             document.querySelectorAll('.core-button').forEach(btn => btn.classList.toggle('active', btn.dataset.core === coreName));
             addLogMessage(`Lõi hoạt động chuyển thành ${AI_CORES[coreName].name}.`, 'warn');
         }
 
         function drawRoadmap() {
             const canvas = document.getElementById('roadmap-canvas');
+            if(!canvas) return;
             const ctx = canvas.getContext('2d');
             const parent = canvas.parentElement;
             canvas.width = parent.clientWidth;
@@ -607,12 +699,34 @@
             });
         }
 
-        function startScanProcess() {
+        async function startScanProcess() {
             if (isScanning) return;
             const currentCost = AI_CORES[activeCore].cost;
-            if (userEnergy < currentCost) { addLogMessage("NĂNG LƯỢNG HỆ THỐNG QUÁ THẤP", 'error'); return; }
-            userEnergy -= currentCost;
-            updateEnergyBar();
+            if (userEnergy < currentCost) { 
+                addLogMessage("NĂNG LƯỢNG HỆ THỐNG QUÁ THẤP", 'error'); 
+                return; 
+            }
+            
+            const newEnergyLevel = userEnergy - currentCost;
+
+            const user = auth.currentUser;
+            if (user) {
+                const userDocRef = db.collection('users').doc(user.uid);
+                try {
+                    await userDocRef.update({ energy: newEnergyLevel });
+                    addLogMessage(`Đã gửi yêu cầu trừ ${currentCost} năng lượng.`, 'warn');
+                } catch (error) {
+                    console.error("Lỗi cập nhật năng lượng:", error);
+                    addLogMessage('Lỗi đồng bộ năng lượng sau khi quét.', 'error');
+                    updateEnergyBar(); 
+                    return; 
+                }
+            } else {
+                userEnergy = newEnergyLevel;
+                updateEnergyBar();
+            }
+
+
             isScanning = true;
             const scanButton = document.getElementById('scan-button');
             scanButton.disabled = true;
@@ -625,7 +739,8 @@
             startMatrixAnimation(); 
             const resultTextEl = document.getElementById('result-text');
             let cyclingInterval = setInterval(() => { resultTextEl.textContent = ['ANALYZING...', 'DECRYPTING...', 'CALCULATING...'][Math.floor(Math.random() * 3)]; }, 150);
-            addLogMessage(`Quét bắt đầu với lõi ${AI_CORES[activeCore].name}. Tiêu thụ ${currentCost} năng lượng.`, 'info');
+            addLogMessage(`Quét bắt đầu với lõi ${AI_CORES[activeCore].name}.`, 'info');
+            
             setTimeout(() => {
                 clearInterval(cyclingInterval);
                 isScanning = false;
@@ -683,25 +798,87 @@
             document.getElementById('probability-panel').style.display = 'block';
         }
 
-        document.getElementById('login-button').addEventListener('click', () => authenticate(document.getElementById('access-code-input').value));
-        document.getElementById('access-code-input').addEventListener('keyup', (e) => { if (e.key === 'Enter') authenticate(e.target.value); });
-        document.getElementById('scan-button').addEventListener('click', startScanProcess);
-        document.querySelectorAll('.core-button').forEach(button => button.addEventListener('click', (e) => setActiveCore(e.currentTarget.dataset.core)));
-        
-        const instructionsModal = document.getElementById('instructions-modal');
-        document.getElementById('show-instructions-button').addEventListener('click', () => { instructionsModal.style.display = 'flex'; });
-        document.getElementById('close-instructions-button').addEventListener('click', () => { instructionsModal.style.display = 'none'; });
-        instructionsModal.addEventListener('click', (e) => { if (e.target === instructionsModal) { instructionsModal.style.display = 'none'; } });
+        function stopCamera() {
+            if (cameraStream) {
+                cameraStream.getTracks().forEach(track => track.stop());
+                cameraStream = null;
+            }
+        }
 
-        document.getElementById('select-sexy').addEventListener('click', () => selectLobby('SEXY'));
-        document.getElementById('select-dg').addEventListener('click', () => selectLobby('DG'));
+        document.addEventListener('DOMContentLoaded', () => {
+            const usernameInput = document.getElementById('username-input');
+            const passwordInput = document.getElementById('password-input');
+            const loginButton = document.getElementById('login-button');
+            const logoutButton = document.getElementById('logout-button');
+            const backToLobbyButton = document.getElementById('back-to-lobby-button');
 
-        window.addEventListener('load', () => {
-            runIntroSequence();
-            initLoginAnimation();
+            function triggerLogin() {
+                const username = usernameInput.value;
+                const password = passwordInput.value;
+                if (!username || !password) {
+                    const errorEl = document.getElementById('login-error');
+                    errorEl.textContent = "VUI LÒNG NHẬP ĐỦ TÀI KHOẢN VÀ MẬT KHẨU";
+                    setTimeout(() => errorEl.textContent = "", 2500);
+                    return;
+                }
+                authenticate(username, password);
+            }
+
+            loginButton.addEventListener('click', triggerLogin);
+            usernameInput.addEventListener('keyup', (e) => { if (e.key === 'Enter') triggerLogin(); });
+            passwordInput.addEventListener('keyup', (e) => { if (e.key === 'Enter') triggerLogin(); });
+
+            logoutButton.addEventListener('click', () => {
+                stopCamera();
+                if (energyListenerUnsubscribe) {
+                    energyListenerUnsubscribe(); 
+                    energyListenerUnsubscribe = null;
+                }
+                auth.signOut().then(() => {
+                    mainContainer.style.display = 'none';
+                    lobbyOverlay.style.display = 'none';
+                    loginOverlay.style.display = 'flex';
+                    currentUser = null;
+                    document.getElementById('username-display').textContent = '';
+                    addLogMessage('Đã đăng xuất thành công.', 'info');
+                }).catch((error) => {
+                    console.error('Lỗi đăng xuất:', error);
+                    addLogMessage('Đăng xuất thất bại.', 'error');
+                });
+            });
+
+            backToLobbyButton.addEventListener('click', () => {
+                stopCamera();
+                mainContainer.style.display = 'none';
+                lobbyOverlay.style.display = 'flex';
+                addLogMessage('Quay lại màn hình chọn sảnh.', 'info');
+            });
+
+            document.getElementById('scan-button').addEventListener('click', startScanProcess);
+            document.querySelectorAll('.core-button').forEach(button => button.addEventListener('click', (e) => setActiveCore(e.currentTarget.dataset.core)));
+            
+            const instructionsModal = document.getElementById('instructions-modal');
+            document.getElementById('show-instructions-button').addEventListener('click', () => { instructionsModal.style.display = 'flex'; });
+            document.getElementById('close-instructions-button').addEventListener('click', () => { instructionsModal.style.display = 'none'; });
+            instructionsModal.addEventListener('click', (e) => { if (e.target === instructionsModal) { instructionsModal.style.display = 'none'; } });
+
+            document.getElementById('select-sexy').addEventListener('click', () => selectLobby('SEXY'));
+            document.getElementById('select-dg').addEventListener('click', () => selectLobby('DG'));
+
+            loginOverlay.style.display = 'flex';
+            initBackgroundGrid();
         });
 
-        async function setupCamera() { try { const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } }); document.getElementById('camera-stream').srcObject = stream; } catch (err) { console.error("Camera access denied:", err); addLogMessage("Lỗi truy cập camera", "error"); } }
+        async function setupCamera() { 
+            try { 
+                cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } }); 
+                document.getElementById('camera-stream').srcObject = cameraStream; 
+            } catch (err) { 
+                console.error("Camera access denied:", err); 
+                addLogMessage("Lỗi truy cập camera", "error"); 
+            } 
+        }
+        
         function initHolographicScanner() {
             const container = document.getElementById('holo-container');
             if (!container || container.querySelector('canvas') || window.innerWidth <= 576) return;
@@ -747,44 +924,17 @@
         
         function createCardTexture(card) {
             const canvas = document.createElement('canvas');
-            const canvasWidth = 200;
-            const canvasHeight = 280;
-            canvas.width = canvasWidth;
-            canvas.height = canvasHeight;
+            const canvasWidth = 200; const canvasHeight = 280;
+            canvas.width = canvasWidth; canvas.height = canvasHeight;
             const ctx = canvas.getContext('2d');
-            
             const primaryColor = AI_CORES[activeCore].color || '#00e5ff';
-            ctx.clearRect(0, 0, canvasWidth, canvasHeight);
             ctx.fillStyle = 'rgba(10, 25, 40, 0.6)';
-            
-            if (ctx.roundRect) {
-                ctx.beginPath();
-                ctx.roundRect(0, 0, canvasWidth, canvasHeight, [15]);
-                ctx.fill();
-            } else {
-                ctx.fillRect(0, 0, canvasWidth, canvasHeight);
-            }
-            
-            ctx.strokeStyle = primaryColor;
-            ctx.lineWidth = 4;
-            ctx.shadowColor = primaryColor;
-            ctx.shadowBlur = 15;
-            if (ctx.roundRect) {
-                 ctx.beginPath();
-                 ctx.roundRect(2, 2, canvasWidth-4, canvasHeight-4, [13]);
-                 ctx.stroke();
-            } else {
-                ctx.strokeRect(2, 2, canvasWidth-4, canvasHeight-4);
-            }
-           
-            ctx.shadowBlur = 0;
-            ctx.fillStyle = primaryColor;
-            ctx.textAlign = 'center';
-            ctx.font = 'bold 50px Rajdhani';
-            ctx.fillText(card.rank, 40, 60);
-            ctx.font = 'bold 110px Rajdhani';
-            ctx.fillText(card.suit, canvasWidth / 2, canvasHeight / 2 + 35);
-            
+            ctx.beginPath(); ctx.roundRect(0, 0, canvasWidth, canvasHeight, [15]); ctx.fill();
+            ctx.strokeStyle = primaryColor; ctx.lineWidth = 4; ctx.shadowColor = primaryColor; ctx.shadowBlur = 15;
+            ctx.beginPath(); ctx.roundRect(2, 2, canvasWidth-4, canvasHeight-4, [13]); ctx.stroke();
+            ctx.shadowBlur = 0; ctx.fillStyle = primaryColor; ctx.textAlign = 'center';
+            ctx.font = 'bold 50px Rajdhani'; ctx.fillText(card.rank, 40, 60);
+            ctx.font = 'bold 110px Rajdhani'; ctx.fillText(card.suit, canvasWidth / 2, canvasHeight / 2 + 35);
             return new THREE.CanvasTexture(canvas);
         }
 
@@ -801,38 +951,15 @@
             const overlay = document.getElementById('scan-animation-overlay'); const container = document.getElementById('camera-view'); overlay.style.display = 'flex';
             if (baccaratAnimation.renderer) { const width = container.clientWidth; const height = container.clientHeight; baccaratAnimation.renderer.setSize(width, height); baccaratAnimation.camera.aspect = width / height; baccaratAnimation.camera.updateProjectionMatrix(); }
             baccaratAnimation.cardMeshes.forEach(mesh => baccaratAnimation.scene.remove(mesh)); baccaratAnimation.cardMeshes = [];
-            baccaratAnimation.cardTextures = {}; 
             const primaryColor = AI_CORES[activeCore].color;
             baccaratAnimation.scannerLaser.material.color.set(primaryColor);
-            baccaratAnimation.scannerLaser.material.needsUpdate = true;
             const hand = BaccaratGame.generateHandForWinner(winner);
             const cardWidth = 2.5, cardHeight = cardWidth * 1.4; const cardGeom = new THREE.PlaneGeometry(cardWidth, cardHeight, 5, 7);
-            
             const createCardMesh = (cardData) => {
-                const frontMat = new THREE.MeshStandardMaterial({
-                    map: createCardTexture(cardData),
-                    side: THREE.DoubleSide,
-                    transparent: true,
-                    roughness: 0.3,
-                    metalness: 0.2,
-                    emissive: new THREE.Color(primaryColor),
-                    emissiveIntensity: 0.4
-                });
-                const backMat = new THREE.MeshBasicMaterial({
-                    color: new THREE.Color(primaryColor),
-                    wireframe: true,
-                    transparent: true,
-                    opacity: 0.6
-                });
-                const group = new THREE.Group();
-                const back = new THREE.Mesh(cardGeom, backMat);
-                const front = new THREE.Mesh(cardGeom, frontMat);
-                front.rotation.y = Math.PI;
-                group.add(back);
-                group.add(front);
-                return group;
+                const frontMat = new THREE.MeshStandardMaterial({ map: createCardTexture(cardData), side: THREE.DoubleSide, transparent: true, roughness: 0.3, metalness: 0.2, emissive: new THREE.Color(primaryColor), emissiveIntensity: 0.4 });
+                const backMat = new THREE.MeshBasicMaterial({ color: new THREE.Color(primaryColor), wireframe: true, transparent: true, opacity: 0.6 });
+                const group = new THREE.Group(); const back = new THREE.Mesh(cardGeom, backMat); const front = new THREE.Mesh(cardGeom, frontMat); front.rotation.y = Math.PI; group.add(back); group.add(front); return group;
             };
-
             const allCards = [...hand.playerHand, ...hand.bankerHand];
             allCards.forEach((cardData) => { const cardMesh = createCardMesh(cardData); cardMesh.visible = false; baccaratAnimation.scene.add(cardMesh); baccaratAnimation.cardMeshes.push(cardMesh); });
             const clock = new THREE.Clock(); const duration = 4.0; const scanEndTime = 0.8, dealEndTime = scanEndTime + 1.0, flipEndTime = dealEndTime + 0.8, thirdCardDealEndTime = flipEndTime + 0.6;
@@ -857,102 +984,10 @@
         
         const ENVIRONMENTAL_LOGS = [ { type: 'info', text: 'Hiệu chỉnh cảm biến lượng tử...' }, { type: 'info', text: 'Đồng bộ hóa luồng dữ liệu thời gian...' }, { type: 'warn', text: 'Ma trận xác suất dao động...' }, { type: 'info', text: 'Nhiễu môi trường ở mức danh nghĩa.' }, { type: 'analysis', text: 'Ghi nhận 3 thiết bị không dây trong phạm vi.'}, { type: 'warn', text: 'Nhiễu tín hiệu điện từ. Đang hiệu chỉnh...'}, { type: 'info', text: 'Chờ lệnh từ người dùng...' } ];
         function initAnalysisTerminal() { 
-            addLogMessage('YIAN A.I CORE v19 online. Hệ thống ổn định.', 'success'); 
+            addLogMessage('YIAN A.I CORE v21.3 online. Hệ thống ổn định.', 'success'); 
             setInterval(() => { const randomMsg = ENVIRONMENTAL_LOGS[Math.floor(Math.random() * ENVIRONMENTAL_LOGS.length)]; addLogMessage(randomMsg.text, randomMsg.type); }, 5000); 
         }
-
-        function initLoginAnimation() {
-            const canvas = document.getElementById('login-canvas'); const scene = new THREE.Scene(); const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000); camera.position.z = 5; const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true }); renderer.setSize(window.innerWidth, window.innerHeight);
-            const unfoldingCubeGroup = new THREE.Group(); const faceSize = 1.5; const planeGeom = new THREE.PlaneGeometry(faceSize, faceSize); const wireframeMat = new THREE.MeshBasicMaterial({ color: 0x00e5ff, wireframe: true });
-            const positions = [ { p: [0, faceSize / 2, 0], r: [-Math.PI / 2, 0, 0] }, { p: [0, -faceSize / 2, 0], r: [Math.PI / 2, 0, 0] }, { p: [faceSize / 2, 0, 0], r: [0, -Math.PI / 2, 0] }, { p: [-faceSize / 2, 0, 0], r: [0, Math.PI / 2, 0] }, { p: [0, 0, faceSize / 2], r: [0, 0, 0] }, { p: [0, 0, -faceSize / 2], r: [0, Math.PI, 0] } ];
-            const faces = positions.map(pos => { const plane = new THREE.Mesh(planeGeom, wireframeMat); plane.position.set(pos.p[0], pos.p[1], pos.p[2]); plane.rotation.set(pos.r[0], pos.r[1], pos.r[2]); unfoldingCubeGroup.add(plane); return plane; });
-            scene.add(unfoldingCubeGroup);
-            const coreGeom = new THREE.IcosahedronGeometry(0.5, 0); const coreMat = new THREE.MeshBasicMaterial({ color: 0x00e5ff, transparent: true, opacity: 0.8, blending: THREE.AdditiveBlending }); const core = new THREE.Mesh(coreGeom, coreMat); scene.add(core);
-            const clock = new THREE.Clock();
-            function animate() { requestAnimationFrame(animate); const elapsedTime = clock.getElapsedTime(); unfoldingCubeGroup.rotation.x += 0.003; unfoldingCubeGroup.rotation.y += 0.003; core.rotation.y += 0.005; const unfoldFactor = (Math.sin(elapsedTime * 0.5) + 1) / 2 * 0.8; faces[0].position.y = faceSize / 2 + unfoldFactor; faces[1].position.y = -faceSize / 2 - unfoldFactor; faces[2].position.x = faceSize / 2 + unfoldFactor; faces[3].position.x = -faceSize / 2 - unfoldFactor; faces[4].position.z = faceSize / 2 + unfoldFactor; faces[5].position.z = -faceSize / 2 - unfoldFactor; renderer.render(scene, camera); }
-            animate();
-            window.addEventListener('resize', () => { camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight); });
-        }
         
-        function runIntroSequence() {
-            const bootScreen = document.getElementById('intro-boot-screen');
-            const bootTextEl = document.getElementById('boot-text');
-            const loadingContainer = document.getElementById('intro-loading-container');
-            const loadingBar = document.getElementById('loading-bar-inner');
-            const loadingPercent = document.getElementById('loading-percent');
-            const mainTitle = document.getElementById('intro-main-title');
-
-            const bootLines = [
-                'INITIALIZING YIAN A.I. CORE v21.1...',
-                'MEMORY CHECK: 256 PB RAM... OK',
-                'LOADING QUANTUM PROCESSORS... [DONE]',
-                'CALIBRATING NEURAL NETWORK... [DONE]',
-                'ENCRYPTING DATA STREAMS... [DONE]',
-                'CONNECTION ESTABLISHED TO GLOBAL GRID...',
-                'A.I. KERNEL LOADED.',
-                'SYSTEM READY.',
-                ''
-            ];
-
-            function typeWriterEffect(lines, element, finalCallback) {
-                let currentLine = 0;
-                let currentChar = 0;
-                element.innerHTML = ''; 
-                
-                function type() {
-                    if (currentLine >= lines.length) {
-                        if(finalCallback) finalCallback();
-                        return;
-                    }
-                    
-                    const line = lines[currentLine];
-                    if (currentChar < line.length) {
-                        element.innerHTML += line.charAt(currentChar);
-                        currentChar++;
-                        setTimeout(type, 10);
-                    } else {
-                        element.innerHTML += '\n';
-                        currentLine++;
-                        currentChar = 0;
-                        element.scrollTop = element.scrollHeight;
-                        setTimeout(type, 100);
-                    }
-                }
-                type();
-            }
-
-            function startLoading() {
-                bootScreen.style.display = 'none';
-                loadingContainer.style.display = 'block';
-                let percent = 0;
-                const interval = setInterval(() => {
-                    percent++;
-                    loadingBar.style.width = percent + '%';
-                    loadingPercent.textContent = percent + '%';
-                    if (percent >= 100) {
-                        clearInterval(interval);
-                        setTimeout(showTitle, 500);
-                    }
-                }, 30);
-            }
-
-            function showTitle() {
-                loadingContainer.style.display = 'none';
-                mainTitle.style.display = 'block';
-                 setTimeout(() => {
-                    const intro = document.getElementById('startup-intro');
-                    intro.style.transition = 'opacity 1s';
-                    intro.style.opacity = 0;
-                    setTimeout(() => {
-                        intro.style.display = 'none';
-                        loginOverlay.style.display = 'flex';
-                    }, 1000);
-                }, 2000);
-            }
-
-            typeWriterEffect(bootLines, bootTextEl, startLoading);
-        }
-
         function initBackgroundGrid() {
             const canvas = document.getElementById('background-canvas'); if (!canvas) return;
             const scene = new THREE.Scene(); const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 1000); camera.position.set(0, 20, 0); camera.lookAt(scene.position);
@@ -967,48 +1002,36 @@
 
         let matrixCtx, matrixCols, matrixDrops;
         function initMatrixAnimation() {
-            const canvas = document.getElementById('matrix-canvas');
+            const canvas = document.getElementById('matrix-canvas'); if(!canvas) return;
             matrixCtx = canvas.getContext('2d');
             const container = canvas.parentElement.parentElement;
-            
-            canvas.width = container.clientWidth;
-            canvas.height = container.clientHeight;
-
-            const characters = 'YIANCOREMATRIX0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+            canvas.width = container.clientWidth; canvas.height = container.clientHeight;
+            const characters = 'YIANCOREMATRIX0123456789';
             const fontSize = 14;
             matrixCols = Math.floor(canvas.width / fontSize);
             matrixDrops = [];
-            for(let i = 0; i < matrixCols; i++) {
-                matrixDrops[i] = 1;
-            }
-            
+            for(let i = 0; i < matrixCols; i++) { matrixDrops[i] = 1; }
             function drawMatrix() {
                 matrixCtx.fillStyle = 'rgba(0, 0, 0, 0.05)';
                 matrixCtx.fillRect(0, 0, canvas.width, canvas.height);
-                matrixCtx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--prism-color-1');
+                matrixCtx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--primary-color');
                 matrixCtx.font = `${fontSize}px ${getComputedStyle(document.documentElement).getPropertyValue('--font-mono')}`;
-
                 for(let i = 0; i < matrixCols; i++) {
                     let text = characters[Math.floor(Math.random() * characters.length)];
                     matrixCtx.fillText(text, i * fontSize, matrixDrops[i] * fontSize);
-                    if(matrixDrops[i] * fontSize > canvas.height && Math.random() > 0.975) {
-                        matrixDrops[i] = 0;
-                    }
+                    if(matrixDrops[i] * fontSize > canvas.height && Math.random() > 0.975) { matrixDrops[i] = 0; }
                     matrixDrops[i]++;
                 }
             }
-            
             function animateMatrix() {
                 drawMatrix();
                 matrixAnimationId = requestAnimationFrame(animateMatrix);
             }
-            
             window.startMatrixAnimation = () => {
                 document.getElementById('matrix-overlay').style.display = 'block';
                 if(matrixAnimationId) cancelAnimationFrame(matrixAnimationId);
                 animateMatrix();
             }
-
             window.stopMatrixAnimation = () => {
                 document.getElementById('matrix-overlay').style.display = 'none';
                 if(matrixAnimationId) cancelAnimationFrame(matrixAnimationId);
