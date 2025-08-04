@@ -371,7 +371,7 @@
             <div id="login-notification">
                 TOOL CHỈ HOẠT ĐỘNG VỚI CÁC TÀI KHOẢN ĐĂNG KÍ TẠI <a href="http://www.f168.codes" target="_blank" class="styled-link">WWW.F168.CODES</a>
             </div>
-            <input type="text" id="username-input" class="modal-input" placeholder="TÊN TÀI KHOẢN HOẶC EMAIL">
+            <input type="text" id="username-input" class="modal-input" placeholder="TÊN TÀI KHOẢN">
             <input type="password" id="password-input" class="modal-input" placeholder="MẬT KHẨU">
             <button id="login-button" class="modal-button">ĐĂNG NHẬP</button>
             <button id="show-instructions-button">Xem Hướng Dẫn</button>
@@ -393,13 +393,13 @@
         <div id="lobby-cards-container">
             <div class="lobby-card" id="select-sexy">
                 <div class="lobby-card-face front">
-                    <img src="https://i.ibb.co/ycn4gVqJ/ae.png" alt="Sảnh Sexy" onerror="this.onerror=null;this.src='https://placehold.co/220x310/0a1928/00e5ff?text=SEXY';">
+                    <img src="https://i.ibb.co/ycn4gVqJ/ae.png" alt="Sảnh Sexy">
                     <div class="lobby-card-title">QUÉT SẢNH SEXY</div>
                 </div>
             </div>
             <div class="lobby-card" id="select-dg">
                 <div class="lobby-card-face front">
-                    <img src="https://i.ibb.co/3m34bdRm/dg.png" alt="Sảnh DG" onerror="this.onerror=null;this.src='https://placehold.co/220x310/0a1928/00e5ff?text=DG';">
+                    <img src="https://i.ibb.co/3m34bdRm/dg.png" alt="Sảnh DG">
                     <div class="lobby-card-title">QUÉT SẢNH DG</div>
                 </div>
             </div>
@@ -541,87 +541,59 @@
         const auth = firebase.auth();
         const db = firebase.firestore();
         
-        // --- AUTH & ENERGY SYNC ---
-        // =================================================================
-        // === CẬP NHẬT: CHO PHÉP ĐĂNG NHẬP BẰNG USERNAME ===
-        // =================================================================
+        // --- AUTH & ENERGY SYNC (UPDATED) ---
         async function authenticate(username, password) {
             const errorEl = document.getElementById('login-error');
             const loginButton = document.getElementById('login-button');
-            const usernameInput = username.trim();
+            const normalizedUsername = username.trim().toLowerCase();
+
+            if (!normalizedUsername || !password) {
+                errorEl.textContent = "VUI LÒNG NHẬP ĐỦ THÔNG TIN";
+                setTimeout(() => errorEl.textContent = "", 2500);
+                return;
+            }
 
             errorEl.textContent = "ĐANG XÁC THỰC...";
             loginButton.disabled = true;
 
-            let emailToLogin = usernameInput;
-
             try {
-                // Bước 1: Nếu người dùng không nhập email (không có ký tự '@'),
-                // thì tìm email tương ứng trong Firestore.
-                if (!usernameInput.includes('@')) {
-                    errorEl.textContent = "ĐANG TÌM TÀI KHOẢN...";
-                    const usersRef = db.collection('users');
-                    
-                    // QUAN TRỌNG: Cần có một trường 'username' (viết thường) trong tài liệu người dùng trên Firestore.
-                    const querySnapshot = await usersRef.where('username', '==', usernameInput.toLowerCase()).get();
+                // --- BƯỚC 1: TÌM USERNAME TRONG DATABASE ---
+                const userDocRef = db.collection('usernames').doc(normalizedUsername);
+                const userDoc = await userDocRef.get();
 
-                    if (querySnapshot.empty) {
-                        // Ném lỗi nếu không tìm thấy username.
-                        throw new Error('auth/user-not-found');
-                    }
-                    
-                    // Lấy email từ tài liệu tìm được.
-                    // QUAN TRỌNG: Cần có một trường 'email' trong tài liệu người dùng.
-                    querySnapshot.forEach(doc => {
-                        emailToLogin = doc.data().email; 
-                    });
-
-                    if (!emailToLogin) {
-                        // Xử lý trường hợp có document nhưng không có trường email.
-                        throw new Error('auth/internal-error-no-email');
-                    }
+                if (!userDoc.exists) {
+                    // Nếu không tìm thấy username, báo lỗi
+                    throw new Error("auth/user-not-found");
                 }
 
-                // Bước 2: Đăng nhập bằng email (email người dùng nhập vào hoặc email đã tìm thấy).
-                const userCredential = await auth.signInWithEmailAndPassword(emailToLogin, password);
+                // --- BƯỚC 2: LẤY EMAIL TƯƠNG ỨNG ---
+                const email = userDoc.data().email;
+
+                // --- BƯỚC 3: DÙNG EMAIL VÀ MẬT KHẨU ĐỂ ĐĂNG NHẬP ---
+                const userCredential = await auth.signInWithEmailAndPassword(email, password);
                 const user = userCredential.user;
 
-                // Bước 3: Đăng nhập thành công, thiết lập giao diện.
+                // Đăng nhập thành công
                 currentUser = user.email.split('@')[0].toUpperCase();
                 document.getElementById('username-display').textContent = currentUser;
-                
                 syncEnergy(user.uid);
                 loginOverlay.style.display = 'none';
                 lobbyOverlay.style.display = 'flex';
                 errorEl.textContent = "";
 
             } catch (error) {
-                // Xử lý các loại lỗi khác nhau.
-                console.error("Lỗi xác thực:", error.code, error.message);
-                
-                // Chuyển đổi mã lỗi từ Error object hoặc message tùy chỉnh thành thông báo cho người dùng.
-                const errorCode = error.code || error.message;
-                
-                switch(errorCode) {
-                    case 'auth/user-not-found':
-                        errorEl.textContent = "TÊN TÀI KHOẢN KHÔNG TỒN TẠI.";
-                        break;
-                    case 'auth/wrong-password':
-                    case 'auth/invalid-credential':
-                        errorEl.textContent = "MẬT KHẨU KHÔNG ĐÚNG.";
-                        break;
-                    case 'auth/internal-error-no-email':
-                        errorEl.textContent = "LỖI DỮ LIỆU. VUI LÒNG LIÊN HỆ ADMIN.";
-                        break;
-                    case 'auth/invalid-email':
-                        errorEl.textContent = "ĐỊNH DẠNG TÀI KHOẢN KHÔNG HỢP LỆ.";
-                        break;
-                    default:
-                        errorEl.textContent = "ĐÃ XẢY RA LỖI. VUI LÒNG THỬ LẠI.";
+                console.error("Lỗi xác thực:", error);
+                // Kiểm tra mã lỗi và hiển thị thông báo phù hợp
+                if (error.message === 'auth/user-not-found' || error.code === 'auth/user-not-found') {
+                    errorEl.textContent = "TÀI KHOẢN KHÔNG TỒN TẠI";
+                } else if (error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
+                    errorEl.textContent = "MẬT KHẨU KHÔNG ĐÚNG";
+                } else {
+                    errorEl.textContent = "ĐÃ XẢY RA LỖI. VUI LÒNG THỬ LẠI.";
                 }
-                setTimeout(() => errorEl.textContent = "", 4000);
+                setTimeout(() => errorEl.textContent = "", 3000);
             } finally {
-                loginButton.disabled = false;
+                loginButton.disabled = false; // Luôn bật lại nút đăng nhập
             }
         }
         
@@ -829,12 +801,6 @@
             function triggerLogin() {
                 const username = usernameInput.value;
                 const password = passwordInput.value;
-                if (!username || !password) {
-                    const errorEl = document.getElementById('login-error');
-                    errorEl.textContent = "VUI LÒNG NHẬP ĐỦ THÔNG TIN";
-                    setTimeout(() => errorEl.textContent = "", 2500);
-                    return;
-                }
                 authenticate(username, password);
             }
 
@@ -981,7 +947,7 @@
                 if (elapsedTime < scanEndTime) { const scanProgress = elapsedTime / scanEndTime; baccaratAnimation.scannerLaser.position.y = (viewHeight / 2) - (scanProgress * viewHeight); baccaratAnimation.scannerLaser.material.opacity = Math.sin(scanProgress * Math.PI); } else { baccaratAnimation.scannerLaser.visible = false; }
                 if (elapsedTime > scanEndTime && elapsedTime < dealEndTime) { const dealProgress = (elapsedTime - scanEndTime) / (dealEndTime - scanEndTime); const positions = [{ x: -3, y: 0, z: 0 }, { x: 3, y: 0, z: 0 }, { x: -1.5, y: 0, z: 0 }, { x: 1.5, y: 0, z: 0 }]; baccaratAnimation.cardMeshes.slice(0, 4).forEach((cm, i) => { if (cm) { cm.visible = true; cm.position.x = positions[i].x; cm.position.z = positions[i].z; cm.position.y = 5 * (1 - Math.min(1, dealProgress * 4 - i * 0.4)); } }); }
                 if (elapsedTime > dealEndTime && elapsedTime < flipEndTime) { const flipProgress = (elapsedTime - dealEndTime) / (flipEndTime - dealEndTime); for (let i = 0; i < 4; i++) { if (baccaratAnimation.cardMeshes[i]) { baccaratAnimation.cardMeshes[i].rotation.y = Math.PI * Math.min(1, flipProgress * 4 - i * 0.5); } } }
-                if (elapsedTime > flipEndTime && elapsedTime < thirdCardDealEndTime) { const thirdCardProgress = (elapsedTime - flipEndTime) / (thirdCardDealEndTime - thirdCardProgress); const playerHasThird = hand.playerHand.length > 2; if (playerHasThird && baccaratAnimation.cardMeshes[4]) { baccaratAnimation.cardMeshes[4].visible = true; baccaratAnimation.cardMeshes[4].position.set(-4.5, 0, 0); baccaratAnimation.cardMeshes[4].position.y = 5 * (1 - thirdCardProgress); } if (hand.bankerHand.length > 2) { const idx = playerHasThird ? 5 : 4; if (baccaratAnimation.cardMeshes[idx]) { baccaratAnimation.cardMeshes[idx].visible = true; baccaratAnimation.cardMeshes[idx].position.set(4.5, 0, 0); baccaratAnimation.cardMeshes[idx].position.y = 5 * (1 - thirdCardProgress); } } }
+                if (elapsedTime > flipEndTime && elapsedTime < thirdCardDealEndTime) { const thirdCardProgress = (elapsedTime - flipEndTime) / (thirdCardDealEndTime - flipEndTime); const playerHasThird = hand.playerHand.length > 2; if (playerHasThird && baccaratAnimation.cardMeshes[4]) { baccaratAnimation.cardMeshes[4].visible = true; baccaratAnimation.cardMeshes[4].position.set(-4.5, 0, 0); baccaratAnimation.cardMeshes[4].position.y = 5 * (1 - thirdCardProgress); } if (hand.bankerHand.length > 2) { const idx = playerHasThird ? 5 : 4; if (baccaratAnimation.cardMeshes[idx]) { baccaratAnimation.cardMeshes[idx].visible = true; baccaratAnimation.cardMeshes[idx].position.set(4.5, 0, 0); baccaratAnimation.cardMeshes[idx].position.y = 5 * (1 - thirdCardProgress); } } }
                 if (elapsedTime > thirdCardDealEndTime) { const finalFlipProgress = (elapsedTime - thirdCardDealEndTime) / (duration - thirdCardDealEndTime); const playerHasThird = hand.playerHand.length > 2; if (playerHasThird && baccaratAnimation.cardMeshes[4]) { baccaratAnimation.cardMeshes[4].rotation.y = Math.PI * Math.min(1, finalFlipProgress * 2); } if (hand.bankerHand.length > 2) { const idx = playerHasThird ? 5 : 4; if (baccaratAnimation.cardMeshes[idx]) { baccaratAnimation.cardMeshes[idx].rotation.y = Math.PI * Math.min(1, finalFlipProgress * 2); } } }
                 baccaratAnimation.renderer.render(baccaratAnimation.scene, baccaratAnimation.camera);
             }
