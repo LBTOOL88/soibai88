@@ -543,46 +543,82 @@
         
         // --- AUTH & ENERGY SYNC ---
         // =================================================================
-        // === SỬA LỖI ĐĂNG NHẬP ===
+        // === CẬP NHẬT: CHO PHÉP ĐĂNG NHẬP BẰNG USERNAME ===
         // =================================================================
         async function authenticate(username, password) {
             const errorEl = document.getElementById('login-error');
             const loginButton = document.getElementById('login-button');
-            let email = username.trim(); // Sử dụng trực tiếp email/username người dùng nhập
-
-            // [LỖI GỐC] Dòng mã bên dưới đã tự động thêm đuôi '@longbao-tool.ai'.
-            // Điều này ngăn người dùng đăng nhập bằng các email khác (ví dụ: @gmail.com).
-            // if (!email.includes('@')) email = `${email}@longbao-tool.ai`; // <-- ĐÃ XÓA BỎ DÒNG NÀY
+            const usernameInput = username.trim();
 
             errorEl.textContent = "ĐANG XÁC THỰC...";
             loginButton.disabled = true;
 
+            let emailToLogin = usernameInput;
+
             try {
-                // Sử dụng hàm signInWithEmailAndPassword với email người dùng cung cấp
-                const userCredential = await auth.signInWithEmailAndPassword(email, password);
+                // Bước 1: Nếu người dùng không nhập email (không có ký tự '@'),
+                // thì tìm email tương ứng trong Firestore.
+                if (!usernameInput.includes('@')) {
+                    errorEl.textContent = "ĐANG TÌM TÀI KHOẢN...";
+                    const usersRef = db.collection('users');
+                    
+                    // QUAN TRỌNG: Cần có một trường 'username' (viết thường) trong tài liệu người dùng trên Firestore.
+                    const querySnapshot = await usersRef.where('username', '==', usernameInput.toLowerCase()).get();
+
+                    if (querySnapshot.empty) {
+                        // Ném lỗi nếu không tìm thấy username.
+                        throw new Error('auth/user-not-found');
+                    }
+                    
+                    // Lấy email từ tài liệu tìm được.
+                    // QUAN TRỌNG: Cần có một trường 'email' trong tài liệu người dùng.
+                    querySnapshot.forEach(doc => {
+                        emailToLogin = doc.data().email; 
+                    });
+
+                    if (!emailToLogin) {
+                        // Xử lý trường hợp có document nhưng không có trường email.
+                        throw new Error('auth/internal-error-no-email');
+                    }
+                }
+
+                // Bước 2: Đăng nhập bằng email (email người dùng nhập vào hoặc email đã tìm thấy).
+                const userCredential = await auth.signInWithEmailAndPassword(emailToLogin, password);
                 const user = userCredential.user;
-                
-                // Lấy tên người dùng từ email để hiển thị
+
+                // Bước 3: Đăng nhập thành công, thiết lập giao diện.
                 currentUser = user.email.split('@')[0].toUpperCase();
                 document.getElementById('username-display').textContent = currentUser;
                 
-                // Đồng bộ hóa năng lượng và chuyển giao diện
                 syncEnergy(user.uid);
                 loginOverlay.style.display = 'none';
                 lobbyOverlay.style.display = 'flex';
                 errorEl.textContent = "";
+
             } catch (error) {
-                console.error("Lỗi Firebase Auth:", error.code, error.message);
-                // Cung cấp thông báo lỗi rõ ràng hơn
-                if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
-                    errorEl.textContent = "TÀI KHOẢN HOẶC MẬT KHẨU KHÔNG ĐÚNG";
-                } else if (error.code === 'auth/invalid-email') {
-                    errorEl.textContent = "ĐỊNH DẠNG EMAIL KHÔNG HỢP LỆ.";
+                // Xử lý các loại lỗi khác nhau.
+                console.error("Lỗi xác thực:", error.code, error.message);
+                
+                // Chuyển đổi mã lỗi từ Error object hoặc message tùy chỉnh thành thông báo cho người dùng.
+                const errorCode = error.code || error.message;
+                
+                switch(errorCode) {
+                    case 'auth/user-not-found':
+                        errorEl.textContent = "TÊN TÀI KHOẢN KHÔNG TỒN TẠI.";
+                        break;
+                    case 'auth/wrong-password':
+                    case 'auth/invalid-credential':
+                        errorEl.textContent = "MẬT KHẨU KHÔNG ĐÚNG.";
+                        break;
+                    case 'auth/internal-error-no-email':
+                        errorEl.textContent = "LỖI DỮ LIỆU. VUI LÒNG LIÊN HỆ ADMIN.";
+                        break;
+                    case 'auth/invalid-email':
+                        errorEl.textContent = "ĐỊNH DẠNG TÀI KHOẢN KHÔNG HỢP LỆ.";
+                        break;
+                    default:
+                        errorEl.textContent = "ĐÃ XẢY RA LỖI. VUI LÒNG THỬ LẠI.";
                 }
-                else {
-                    errorEl.textContent = "ĐÃ XẢY RA LỖI. VUI LÒNG THỬ LẠI.";
-                }
-                // Giữ thông báo lỗi lâu hơn để người dùng đọc
                 setTimeout(() => errorEl.textContent = "", 4000);
             } finally {
                 loginButton.disabled = false;
