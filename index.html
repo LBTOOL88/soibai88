@@ -371,7 +371,7 @@
             <div id="login-notification">
                 TOOL CHỈ HOẠT ĐỘNG VỚI CÁC TÀI KHOẢN ĐĂNG KÍ TẠI <a href="http://www.f168.codes" target="_blank" class="styled-link">WWW.F168.CODES</a>
             </div>
-            <input type="text" id="username-input" class="modal-input" placeholder="TÊN TÀI KHOẢN">
+            <input type="text" id="username-input" class="modal-input" placeholder="NHẬP TÊN TÀI KHOẢN">
             <input type="password" id="password-input" class="modal-input" placeholder="MẬT KHẨU">
             <button id="login-button" class="modal-button">ĐĂNG NHẬP</button>
             <button id="show-instructions-button">Xem Hướng Dẫn</button>
@@ -428,7 +428,7 @@
                     <span>FUSION</span>
                 </button>
                 <button class="core-button" data-core="titan">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 256 256"><path d="M144,160,128,224,112,160,48,144l64-16L128,64l16,64,64,16Z" opacity="0.2"></path><path d="M232,128a103.37,0,0,1-22.5,64.25,8,8,0,0,1-13-8.5A88,88,0,1,0,69.25,197.75a8,8,0,0,1-13,8.5A104,104,0,1,1,232,128ZM128,72l-16,64L48,152l64,16,16,64,16-64,64-16-64-16Z"></path></svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 256 256"><path d="M144,160,128,224,112,160,48,144l64-16,128,64,16,64,64,16Z" opacity="0.2"></path><path d="M232,128a103.37,0,0,1-22.5,64.25,8,8,0,0,1-13-8.5A88,88,0,1,0,69.25,197.75a8,8,0,0,1-13,8.5A104,104,0,1,1,232,128ZM128,72l-16,64L48,152l64,16,16,64,16-64,64-16-64-16Z"></path></svg>
                     <span>TITAN</span>
                 </button>
                 <button class="core-button" data-core="oracle">
@@ -541,59 +541,37 @@
         const auth = firebase.auth();
         const db = firebase.firestore();
         
-        // --- AUTH & ENERGY SYNC (UPDATED) ---
+        // --- AUTH & ENERGY SYNC (MODIFIED) ---
         async function authenticate(username, password) {
             const errorEl = document.getElementById('login-error');
             const loginButton = document.getElementById('login-button');
-            const normalizedUsername = username.trim().toLowerCase();
-
-            if (!normalizedUsername || !password) {
-                errorEl.textContent = "VUI LÒNG NHẬP ĐỦ THÔNG TIN";
-                setTimeout(() => errorEl.textContent = "", 2500);
-                return;
-            }
+            
+            // THAY ĐỔI CHÍNH: Luôn lấy username và gắn đuôi @longbao-tool.ai
+            const emailToAuth = `${username.trim().toLowerCase()}@longbao-tool.ai`;
 
             errorEl.textContent = "ĐANG XÁC THỰC...";
             loginButton.disabled = true;
 
             try {
-                // --- BƯỚC 1: TÌM USERNAME TRONG DATABASE ---
-                const userDocRef = db.collection('usernames').doc(normalizedUsername);
-                const userDoc = await userDocRef.get();
-
-                if (!userDoc.exists) {
-                    // Nếu không tìm thấy username, báo lỗi
-                    throw new Error("auth/user-not-found");
-                }
-
-                // --- BƯỚC 2: LẤY EMAIL TƯƠNG ỨNG ---
-                const email = userDoc.data().email;
-
-                // --- BƯỚC 3: DÙNG EMAIL VÀ MẬT KHẨU ĐỂ ĐĂNG NHẬP ---
-                const userCredential = await auth.signInWithEmailAndPassword(email, password);
+                // Sử dụng biến emailToAuth để đăng nhập
+                const userCredential = await auth.signInWithEmailAndPassword(emailToAuth, password);
                 const user = userCredential.user;
-
-                // Đăng nhập thành công
                 currentUser = user.email.split('@')[0].toUpperCase();
                 document.getElementById('username-display').textContent = currentUser;
                 syncEnergy(user.uid);
                 loginOverlay.style.display = 'none';
                 lobbyOverlay.style.display = 'flex';
                 errorEl.textContent = "";
-
             } catch (error) {
-                console.error("Lỗi xác thực:", error);
-                // Kiểm tra mã lỗi và hiển thị thông báo phù hợp
-                if (error.message === 'auth/user-not-found' || error.code === 'auth/user-not-found') {
-                    errorEl.textContent = "TÀI KHOẢN KHÔNG TỒN TẠI";
-                } else if (error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
-                    errorEl.textContent = "MẬT KHẨU KHÔNG ĐÚNG";
+                console.error("Lỗi Firebase Auth:", error.code, error.message);
+                if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
+                    errorEl.textContent = "TÀI KHOẢN HOẶC MẬT KHẨU KHÔNG ĐÚNG";
                 } else {
                     errorEl.textContent = "ĐÃ XẢY RA LỖI. VUI LÒNG THỬ LẠI.";
                 }
                 setTimeout(() => errorEl.textContent = "", 3000);
             } finally {
-                loginButton.disabled = false; // Luôn bật lại nút đăng nhập
+                loginButton.disabled = false;
             }
         }
         
@@ -681,7 +659,7 @@
             const rows = Math.floor((canvas.height - padding * 2) / beadSize);
             ctx.strokeStyle = 'rgba(0, 229, 255, 0.1)';
             for(let i=0; i<=cols; i++) { ctx.beginPath(); ctx.moveTo(padding+i*beadSize, padding); ctx.lineTo(padding+i*beadSize, canvas.height-padding); ctx.stroke(); }
-            for(let i=0; i<=rows; i++) { ctx.beginPath(); ctx.moveTo(padding, padding+i*beadSize); ctx.lineTo(canvas.width-padding, padding+i*beadSize); ctx.stroke(); }
+            for(let i=0; i<=rows; i++) { ctx.beginPath(); ctx.moveTo(padding, padding+i*beadSize); ctx.lineTo(canvas.width-padding, padding*i*beadSize); ctx.stroke(); }
             let currentX = 0, currentY = 0;
             history.slice(-cols * rows).forEach(result => {
                 const centerX = padding + currentX * beadSize + beadSize / 2;
@@ -801,6 +779,12 @@
             function triggerLogin() {
                 const username = usernameInput.value;
                 const password = passwordInput.value;
+                if (!username || !password) {
+                    const errorEl = document.getElementById('login-error');
+                    errorEl.textContent = "VUI LÒNG NHẬP ĐỦ THÔNG TIN";
+                    setTimeout(() => errorEl.textContent = "", 2500);
+                    return;
+                }
                 authenticate(username, password);
             }
 
