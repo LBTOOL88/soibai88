@@ -12,7 +12,7 @@
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&amp;family=Inter:wght@400;700&amp;family=Roboto:wght@400;700&amp;family=Rajdhani:wght@400;700&amp;family=Fira+Code:wght@400;700&amp;family=Share+Tech+Mono&amp;display=swap" rel="stylesheet"/>
 <!-- Tailwind runtime (Play CDN) - KEEP as fallback during development -->
-<script type="text/javascript" src="https://gc.kis.v2.scr.kaspersky-labs.com/FD126C42-EBFA-4E12-B309-BB3FDD723AC1/main.js?attr=ATFhxlYyc0sZm7um9QZeWGjNxpOu651xGO9_Yi0DlA4U0t9b7B3TzkJTfJhGiGzRlPBkoqm0Sc-Rj4IHchmeaUmSK03TglzVfnrWxayU_-UPGtvQr6bhwM84RvCgTkm1fZR19ZZZ_FZlexLCXHKQjkK8izrh_QpjH70kD6b9xY-k7huaGaBkdvvdsILzlgvVnEpL7MvdGZaYreblfGgc90fzaxXujXTznCkAP4hP6YOlYs9bSJW5nTyT8sDprgSE" charset="UTF-8"></script><script src="https://cdn.tailwindcss.com"></script>
+<script type="text/javascript" src="https://gc.kis.v2.scr.kaspersky-labs.com/FD126C42-EBFA-4E12-B309-BB3FDD723AC1/main.js?attr=8XBYUXZToxub4AUG1WyUiRw1DvZ-xxuteLZzei7p4eZCDcKgV19dcoejGpHfNPrdbwVNddLggmQabPgiHLco141EK1qPwFzn5N13LLSKATjo-BFl02p8PPTr5O38iyRmAMO1_KaV1NGgPlT01zqnN_fT1TpbPPBVPNQDXCCiyiXJFvPg8GMm9Gs1kMuOL2wzBAJM8YXkJM_-AkNNySeUE2tsfZ2fYK8DB-tRlMF5ml_MCwltF2tC3D6Uwei9eYEs" charset="UTF-8"></script><script type="text/javascript" src="https://gc.kis.v2.scr.kaspersky-labs.com/FD126C42-EBFA-4E12-B309-BB3FDD723AC1/main.js?attr=MQdOxZqj47I2gAR4A1K-IIg2AXl49pU59qIrAdkNGHOtvfmQVauVpc35XBWyRXU4BkkJZs2ChJxP0JmrVj1HnqS6BN-4H7eYkP-ZS4wus1BXiBXMbCSWGvqFJi_iyq3ujnhR0A_d32PPcpJYR30PDlAyHL3euYB7ISuf0Iav0PUQYlElxdxIu5FLztFLZGnMeIfn6samrkpWA2iWN3AZ9R3WXYThvF7EbZLCsAssk56pCst3ky212WReWDrrRBuB" charset="UTF-8"></script><script src="https://cdn.tailwindcss.com"></script>
 <!-- SWAP_TAILWIND_STATIC:
      After running `npm run build:css` (or the npx command),
      replace the CDN script above with the line below and remove this comment:
@@ -23,7 +23,16 @@
 <link href="style.css" rel="stylesheet"/>
 <link href="manifest.json" rel="manifest"/>
 <meta content="#00e6e6" name="theme-color"/>
+    <!-- Load Firebase configuration from external file.  -->
+    <script src="config.js"></script>
 <style>
+/* Override theme variables for futuristic hacker theme */
+:root {
+    --cyan: #00c2ff;
+    --yellow: #00ff9b;
+    --border-color: #00c2ff;
+    --gold: #00c2ff;
+}
         /* --- CORE STYLES --- */
         :root {
             --cyan: #00ffff;
@@ -960,6 +969,144 @@
 }
 
 </style>
+<!--
+    Style adjustments for the login card to ensure it appears exactly as the original design.
+    These rules override default styles on the auth screen and ensure the inputs, buttons and
+    banners match the neon border and gradient button shown in the screenshot.  We scope these
+    rules to #authScreen so they do not affect other screens.
+-->
+<style>
+    /* Center the auth card and give it a neon frame */
+    #authScreen {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+        z-index: 100;
+    }
+    #authScreen #auth-content {
+        position: relative;
+        width: 100%;
+        max-width: 380px;
+        padding: 30px 24px;
+        background: rgba(10, 10, 30, 0.9);
+        border: 2px solid var(--yellow);
+        box-shadow: 0 0 20px var(--yellow);
+    }
+    /* Always show corner brackets with yellow color */
+    #authScreen .corner-bracket {
+        opacity: 1 !important;
+        border-color: var(--yellow) !important;
+        animation: none !important;
+    }
+    #authScreen h2 {
+        color: var(--yellow);
+        font-size: 1.6rem;
+        margin: 0 0 1rem 0;
+        text-transform: uppercase;
+        text-shadow: 0 0 10px var(--yellow);
+    }
+    #authScreen input {
+        width: 100%;
+        padding: 12px 10px;
+        margin-bottom: 1rem;
+        border: 1px solid var(--yellow);
+        background: rgba(0, 0, 0, 0.6);
+        color: var(--yellow);
+        font-weight: 600;
+    }
+    #authScreen input::placeholder {
+        color: rgba(255, 255, 255, 0.5);
+        font-weight: normal;
+    }
+    #authScreen #loginBtn {
+        width: 100%;
+        padding: 12px 0;
+        border: none;
+        border-radius: 4px;
+        background-image: linear-gradient(90deg, #ff3c3c, #fcee0a);
+        color: #000;
+        font-weight: bold;
+        letter-spacing: 0.5px;
+        box-shadow: 0 0 10px var(--yellow);
+        cursor: pointer;
+    }
+    #authScreen .auth-switch {
+        margin-top: 1rem;
+        font-size: 0.9rem;
+        color: var(--cyan);
+    }
+    #authScreen .auth-switch a {
+        color: var(--cyan);
+        text-decoration: none;
+        font-weight: bold;
+    }
+    #authScreen .auth-switch a:hover {
+        color: var(--yellow);
+        text-decoration: underline;
+    }
+    /* Banner reminding users to register at F168 */
+    #authScreen .f168-banner {
+        display: block;
+        text-align: center;
+        margin-top: 1rem;
+        padding: 10px;
+        border: 1px solid var(--error-red);
+        background: rgba(255, 0, 0, 0.2);
+        color: var(--error-red);
+        font-weight: bold;
+        font-size: 0.9rem;
+        text-shadow: 0 0 5px var(--error-red);
+    }
+    #authScreen .f168-banner:hover {
+        background: rgba(255, 60, 60, 0.4);
+        color: var(--text-light);
+    }
+    /* Download app banner */
+    #authScreen .download-banner {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        margin-top: 1rem;
+        padding: 10px;
+        border: 1px solid var(--cyan);
+        background: rgba(0, 255, 255, 0.2);
+        color: var(--cyan);
+        font-weight: bold;
+        font-size: 0.9rem;
+        text-shadow: 0 0 5px var(--cyan);
+        border-radius: 4px;
+    }
+    #authScreen .download-banner:hover {
+        background: rgba(0, 255, 255, 0.3);
+        color: var(--yellow);
+        text-shadow: 0 0 10px var(--yellow);
+    }
+    #authScreen .download-banner img {
+        height: 20px;
+        width: auto;
+    }
+    /* Footer contact link under the login card */
+    #footer-contact-link {
+        display: inline-block;
+        margin-top: 1.5rem;
+        padding: 8px 16px;
+        border: 1px solid var(--cyan);
+        background: rgba(0, 255, 255, 0.15);
+        color: var(--cyan);
+        text-decoration: none;
+        font-weight: bold;
+        transition: all 0.2s ease;
+    }
+    #footer-contact-link:hover {
+        background: rgba(0, 255, 255, 0.25);
+        color: var(--yellow);
+        box-shadow: 0 0 10px var(--cyan);
+    }
+</style>
 <!-- Mobile-specific adjustments for the promo banner to ensure it doesn't overlap the contact link -->
 <style>
   @media (max-width: 480px) {
@@ -1764,6 +1911,7 @@
   }
 </style>
 
+</style>
 <link href="https://fonts.googleapis.com/css2?family=Oxanium:wght@400;600;700&family=Orbitron:wght@600;800&display=swap" rel="stylesheet">
 <link href="//fonts.gstatic.com" rel="dns-prefetch"/>
 <link crossorigin="True" href="https://fonts.gstatic.com" rel="preconnect"/>
@@ -1855,12 +2003,212 @@
     body::before { filter: blur(20px) !important; animation-duration: 30s !important; opacity: 0.35 !important; }
     .bg-premium::before, .bg-premium::after { filter: blur(20px) !important; }
     /* Respect user preference for reduced motion */
-    @media (prefers-reduced-motion: reduce) {
-        *, *::before, *::after {
-            animation: none !important;
-            transition: none !important;
+        @media (prefers-reduced-motion: reduce) {
+            /* Disable heavy background animations only, but keep form elements visible */
+            body::before,
+            .bg-premium::before,
+            .bg-premium::after {
+                animation: none !important;
+            }
+            /* Show corner brackets without animation */
+            .corner-bracket {
+                animation: none !important;
+            }
+            /* Ensure boot-anim elements (login inputs, buttons, etc.) are visible without animation */
+            .boot-anim {
+                opacity: 1 !important;
+                transform: none !important;
+                animation: none !important;
+            }
         }
+</style>
+<!--
+    Additional high-tech/hacker theme overrides.  These rules make panels dark with neon-green borders,
+    and replace the Soi Hủ video with a lightweight animated background.  You can tweak colors as desired.
+-->
+<style>
+    /* Dark glass panels with neon green glow */
+    .box-panel {
+        background: rgba(0, 0, 0, 0.6) !important;
+        border: 1px solid rgba(0, 255, 0, 0.4) !important;
+        box-shadow: 0 0 10px rgba(0, 255, 0, 0.3) !important;
     }
+    /* Updated suggestion container to stand out */
+    #suggested-table-container {
+        background: rgba(0, 0, 0, 0.5) !important;
+        border: 1px solid rgba(0, 255, 0, 0.4) !important;
+    }
+    /* Lightweight background replacing the heavy Soi Hủ video */
+    #video-background-soihu {
+        position: absolute;
+        inset: 0;
+        overflow: hidden;
+    }
+    #video-background-soihu .soihu-background {
+        position: absolute;
+        inset: 0;
+        background: repeating-linear-gradient(
+            0deg,
+            rgba(0, 255, 0, 0.05) 0px,
+            rgba(0, 255, 0, 0.05) 2px,
+            rgba(0, 0, 0, 0.1) 2px,
+            rgba(0, 0, 0, 0.1) 4px
+        );
+        animation: soihuBgMove 30s linear infinite;
+        pointer-events: none;
+    }
+    @keyframes soihuBgMove {
+        from { background-position: 0 0; }
+        to { background-position: 0 100%; }
+    }
+    /* Softer glowing text using neon green for high-tech vibe */
+    .glow-text-gold {
+        color: #bfff00 !important;
+        text-shadow: 0 0 10px rgba(191, 255, 0, 0.8), 0 0 20px rgba(191, 255, 0, 0.6);
+    }
+</style>
+
+<!-- Custom overrides for removing chat UI and implementing futuristic login & Soi Hu styling -->
+<style>
+/* Hide chat containers permanently */
+#chat-robot-container,
+#chat-window-container {
+    display: none !important;
+}
+/* Hide unused YouTube player element */
+#youtube-player {
+    display: none !important;
+}
+/* Futuristic login card styling */
+#auth-content {
+    background: rgba(5, 10, 20, 0.85) !important;
+    border: 2px solid var(--neon-blue) !important;
+    border-radius: 1rem !important;
+    box-shadow: 0 0 20px var(--neon-blue), inset 0 0 10px var(--neon-blue) !important;
+    max-width: 420px !important;
+    width: 90% !important;
+    padding: 2rem !important;
+    margin: 2rem auto !important;
+}
+#auth-logo {
+    filter: drop-shadow(0 0 10px var(--neon-blue)) !important;
+    border: 2px solid var(--neon-blue) !important;
+    box-shadow: 0 0 15px var(--neon-blue) !important;
+}
+#loginForm input,
+#registerForm input {
+    background-color: rgba(0, 0, 0, 0.5) !important;
+    border: 1px solid var(--neon-blue) !important;
+    color: var(--neon-blue) !important;
+    padding: 0.75rem 1rem !important;
+    border-radius: 0.5rem !important;
+}
+#loginForm input::placeholder,
+#registerForm input::placeholder {
+    color: rgba(0, 194, 255, 0.6) !important;
+}
+#loginBtn,
+#registerBtn {
+    background: linear-gradient(90deg, var(--neon-blue), var(--neon-green)) !important;
+    color: #0a1f38 !important;
+    font-weight: bold !important;
+    border-radius: 0.5rem !important;
+    padding: 0.75rem 1rem !important;
+    box-shadow: 0 0 10px var(--neon-blue) !important;
+}
+.auth-switch a {
+    color: var(--neon-green) !important;
+}
+.auth-switch a:hover {
+    text-decoration: underline !important;
+}
+.download-banner,
+.f168-banner {
+    background-color: rgba(0, 0, 0, 0.3) !important;
+    border: 1px solid var(--neon-blue) !important;
+    border-radius: 0.5rem !important;
+    padding: 0.5rem 1rem !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 0.5rem !important;
+    color: var(--neon-blue) !important;
+}
+.download-banner:hover,
+.f168-banner:hover {
+    background-color: var(--neon-blue) !important;
+    color: #0a1f38 !important;
+}
+/* Soi Hu high-tech panel styling */
+#soiHuScreen .glass-effect {
+    background: rgba(0, 0, 0, 0.6) !important;
+    border: 1px solid var(--neon-blue) !important;
+    backdrop-filter: blur(4px) !important;
+    box-shadow: 0 0 15px var(--neon-blue) !important;
+}
+#lobby-grid .lobby-card {
+    background: rgba(0, 0, 0, 0.6) !important;
+    border: 1px solid var(--neon-green) !important;
+    border-radius: 0.75rem !important;
+    box-shadow: 0 0 10px var(--neon-green) !important;
+}
+@media (max-width: 640px) {
+    #auth-content {
+        padding: 1.5rem;
+        margin: 1rem auto;
+    }
+    #auth-logo {
+        width: 80px;
+        height: 80px;
+    }
+    #loginBtn,
+    #registerBtn {
+        padding: 0.6rem 1rem;
+        font-size: 0.9rem;
+    }
+    .download-banner,
+    .f168-banner {
+        flex-direction: column;
+        text-align: center;
+    }
+}
+
+/* Override heading color for login/register screens */
+#authScreen h2 {
+    color: var(--neon-green) !important;
+    text-shadow: 0 0 10px var(--neon-green), 0 0 20px var(--neon-blue) !important;
+}
+
+/* Override auth screen background for futuristic theme */
+#authScreen {
+    background: linear-gradient(180deg, #0a122a 0%, #050e1f 50%, #010509 100%) !important;
+}
+
+/* Override dragon-tech background colors */
+#dragon-tech-bg {
+    --dragon-url: none;
+    background: repeating-linear-gradient(0deg, rgba(0, 194, 255, 0.06) 0 1px, transparent 1px 6px),
+                repeating-linear-gradient(90deg, rgba(0, 194, 255, 0.05) 0 1px, transparent 1px 6px),
+                radial-gradient(600px 400px at 65% 40%, rgba(0, 194, 255, .08), transparent 60%) !important;
+    filter: drop-shadow(0 0 18px rgba(0,194,255,0.25)) !important;
+    opacity: 0.7 !important;
+}
+#dragon-tech-bg::after {
+    background: linear-gradient(90deg, transparent, rgba(0,194,255,.85), transparent) !important;
+    box-shadow: 0 0 18px rgba(0,194,255,.95) !important;
+}
+#dragon-tech-bg::before {
+    background-image:
+      radial-gradient(rgba(0,194,255,.9) 1px, transparent 1px),
+      radial-gradient(rgba(0,255,155,.8) 1px, transparent 1px) !important;
+    background-size: 3px 3px, 4px 4px !important;
+    background-position: 0 0, 20px 10px !important;
+}
+
+/* Darken overall page background */
+html, body {
+    background-color: #010509 !important;
+    background-image: none !important;
+}
 </style>
 
 </head>
@@ -2020,7 +2368,8 @@
 <!-- SOI HỦ CORE HTML -->
 <div class="container-screen hidden" id="soiHuScreen">
 <div id="video-background-soihu">
-<iframe allow="autoplay; fullscreen" allowfullscreen="" frameborder="0" src="https://streamable.com/e/luj9cq?autoplay=1&amp;mute=1&amp;loop=1"></iframe>
+    <!-- Replaced heavy video background with a lightweight animated canvas-like placeholder -->
+    <div class="soihu-background"></div>
 </div>
 <div class="scanlines"></div>
 <div class="glitch-overlay"></div>
@@ -2213,14 +2562,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // --- CONFIGURATION ---
         const CONFIG = {
-            firebase: {
-                apiKey: "AIzaSyCHDzGbXmHNWKL2UtRm57vPRVxZb31dHto",
-                authDomain: "long-bao-tool-ai.firebaseapp.com",
-                projectId: "long-bao-tool-ai",
-                storageBucket: "long-bao-tool-ai.appspot.com",
-                messagingSenderId: "259613170671",
-                appId: "1:259613170671:web:6fe2467879c01da52b41a",
-            },
+            // Firebase config is loaded from config.js at runtime.  
+            firebase: window.FIREBASE_CONFIG,
             authDomainSuffix: "@long-bao-tool-ai.web.app",
             energy: {
                 initial: 5,
@@ -2597,19 +2940,8 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // --- MEDIA & SOUND ENGINE ---
         function initializeMedia() {
-            window.onYouTubeIframeAPIReady = () => {
-                isYtReady = true;
-                ytPlayer = new YT.Player('youtube-player', {
-                    height: '360', width: '640', videoId: '16GcpkR3rMM',
-                    playerVars: { 'autoplay': 1, 'controls': 0, 'loop': 1, 'playlist': '16GcpkR3rMM' },
-                    events: { 'onReady': onPlayerReady }
-                });
-            };
-            const tag = document.createElement('script');
-            tag.src = "https://www.youtube.com/iframe_api";
-            document.head.appendChild(tag);
-
-            // initializeSounds(); // moved to lazy init on first gesture
+            // Removed YouTube embed and API initialization to improve performance.
+            // Sounds will be initialized lazily upon first user interaction via ensureToneAndInit().
 }
 
         function onPlayerReady(event) {
@@ -4291,7 +4623,8 @@ KẾ HOẠCH CHI TIẾT CHO VỐN: ${capitalInVND.toLocaleString('vi-VN')}đ
             DOMElements.nextCoreBtn.addEventListener('click', () => handleCoreNavigation(1));
             DOMElements.prevCoreBtn.addEventListener('click', () => handleCoreNavigation(-1));
             DOMElements.logoutBtn.addEventListener('click', () => { logActivity("Đăng xuất."); signOut(auth); showNotification("Đã đăng xuất.", "info"); });
-            DOMElements.chatForm.addEventListener('submit', handleSendMessage);
+            // Chat feature removed; event listener disabled
+            // DOMElements.chatForm.addEventListener('submit', handleSendMessage);
             document.querySelectorAll('.close-modal-btn').forEach(btn => btn.addEventListener('click', () => { playSound('click'); btn.closest('.modal-overlay').classList.add('hidden'); }));
             DOMElements.profileBtn.addEventListener('click', () => {
                 if (!currentUserData) return;
@@ -4323,7 +4656,8 @@ KẾ HOẠCH CHI TIẾT CHO VỐN: ${capitalInVND.toLocaleString('vi-VN')}đ
                 DOMElements.scanContainerSoiHu.classList.add('hidden');
             });
 
-            initDraggableRobot();
+            // initDraggableRobot removed as chatbot is disabled
+            // initDraggableRobot();
         }
         
         function init() {
@@ -4348,9 +4682,11 @@ KẾ HOẠCH CHI TIẾT CHO VỐN: ${capitalInVND.toLocaleString('vi-VN')}đ
                         DOMElements.aiCoreSelectionScreen.classList.remove('hidden');
                         DOMElements.aiCoreSelectionScreen.classList.add('fade-in');
                         DOMElements.userInfoBar.classList.remove('hidden');
-                        DOMElements.chatRobotContainer.classList.remove('hidden');
+                        // Chatbot disabled; do not show chat robot
+                        // DOMElements.chatRobotContainer.classList.remove('hidden');
                         decodeText(DOMElements.aiCoreSelectionScreen.querySelector('h1'));
-                        initChatbot();
+                        // initChatbot disabled; chat feature removed
+                        // initChatbot();
                     }, 500);
                 } else {
                     if (unsubscribeUser) unsubscribeUser();
@@ -4360,9 +4696,10 @@ KẾ HOẠCH CHI TIẾT CHO VỐN: ${capitalInVND.toLocaleString('vi-VN')}đ
                     DOMElements.longbaoIVScreen.classList.add('hidden');
                     DOMElements.soiHuScreen.classList.add('hidden');
                     DOMElements.userInfoBar.classList.add('hidden');
-                    DOMElements.chatRobotContainer.classList.add('hidden');
-                    DOMElements.chatWindowContainer.classList.add('hidden');
-                    DOMElements.robotSpeechBubble.classList.remove('hidden');
+                    // Chatbot disabled; ensure chat UI remains hidden
+                    // DOMElements.chatRobotContainer.classList.add('hidden');
+                    // DOMElements.chatWindowContainer.classList.add('hidden');
+                    // DOMElements.robotSpeechBubble.classList.remove('hidden');
                     decodeText(DOMElements.loginForm.querySelector('h2'));
                 }
             });
