@@ -1,0 +1,8 @@
+# Ignore sensitive configuration files and build artefacts
+config.js
+
+# Ignore node_modules (if using npm/yarn)
+node_modules/
+
+# Optional: ignore system files
+.DS_Store
