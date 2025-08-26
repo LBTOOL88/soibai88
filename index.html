@@ -2237,6 +2237,43 @@ html, body {
 
 </style>
 
+
+<!-- SwiperJS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css"/>
+<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    if (window.innerWidth <= 480) {
+      const wrapper = document.getElementById("core-cards-wrapper");
+      const cards = Array.from(wrapper.children);
+      wrapper.innerHTML = "";
+      wrapper.className = "swiper-wrapper";
+      cards.forEach(card => {
+        const slide = document.createElement("div");
+        slide.className = "swiper-slide";
+        slide.appendChild(card);
+        wrapper.appendChild(slide);
+      });
+
+      const container = document.getElementById("core-selector-container");
+      container.classList.add("swiper");
+
+      new Swiper(container, {
+        slidesPerView: 1.2,
+        spaceBetween: 16,
+        centeredSlides: true,
+        loop: false,
+        grabCursor: true,
+        pagination: {
+          el: ".swiper-pagination",
+          clickable: true
+        }
+      });
+    }
+  });
+</script>
+
 </head>
 <body class="theme-longbao-gen5">
 <!-- Toggle Markup: đặt vị trí tiện lợi (vd: header) -->
@@ -2299,6 +2336,8 @@ html, body {
 <h1 class="title-vip" data-text="CHỌN LÕI A.I"></h1>
 <div class="relative" id="core-selector-container">
 <div id="core-cards-wrapper"></div>
+<div class="swiper-pagination"></div>
+
 <button aria-label="Lõi trước" class="core-nav-btn" id="prev-core-btn">&lt;</button>
 <button aria-label="Lõi tiếp theo" class="core-nav-btn" id="next-core-btn">&gt;</button>
 </div>
